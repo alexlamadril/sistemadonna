@@ -16,13 +16,13 @@ import {
 let app, auth, db, appId;
 try {
   const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-  apiKey: "AIzaSyAmE55qdLqjPDhRzDj0MGd9e6mXEca3B2A",
-  authDomain: "donna-bb0dd.firebaseapp.com",
-  projectId: "donna-bb0dd",
-  storageBucket: "donna-bb0dd.firebasestorage.app",
-  messagingSenderId: "864824985006",
-  appId: "1:864824985006:web:94a76d3ffaf0d6b732743f"
-};
+    apiKey: "AIzaSyAmE55qdLqjPDhRzDj0MGd9e6mXEca3B2A",
+    authDomain: "donna-bb0dd.firebaseapp.com",
+    projectId: "donna-bb0dd",
+    storageBucket: "donna-bb0dd.firebasestorage.app",
+    messagingSenderId: "864824985006",
+    appId: "1:864824985006:web:94a76d3ffaf0d6b732743f"
+  };
 
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
@@ -73,9 +73,10 @@ const INITIAL_SERVICES = [
 ];
 
 const INITIAL_PRODUCTS = [
-  { id: 101, name: 'Shampoo Caviar 1L', price: 120, stock: 10 },
-  { id: 102, name: 'Condicionador Platinum 1L', price: 170, stock: 8 },
-  { id: 103, name: 'Óleo Argan Premium', price: 220, stock: 15 }
+  { id: 101, name: 'Shampoo Caviar 1L', price: 120, stock: 10, image: 'https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?auto=format&fit=crop&w=400&q=80', description: 'Limpeza suave com extrato de caviar para brilho intenso.' },
+  { id: 102, name: 'Condicionador Platinum 1L', price: 170, stock: 8, image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80', description: 'Hidratação profunda para fios loiros e platinados.' },
+  { id: 103, name: 'Óleo Argan Premium', price: 220, stock: 15, image: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=400&q=80', description: 'Brilho intenso, reparação de pontas e proteção térmica.' },
+  { id: 104, name: 'Máscara Reconstrutora', price: 190, stock: 12, image: 'https://images.unsplash.com/photo-1596462502278-27bf85033e5a?auto=format&fit=crop&w=400&q=80', description: 'Reconstrução capilar avançada para fios danificados.' }
 ];
 
 const INITIAL_PROFESSIONALS = [
@@ -95,7 +96,7 @@ const MOCK_CLIENTS = [
 
 // --- LANDING PAGE ---
 
-const LandingPage = ({ setView, salonName, branding }) => {
+const LandingPage = ({ setView, salonName, branding, products = [], onProductClick }) => {
   const shortName = (salonName || "DONNA").split(' ')[0].toUpperCase();
 
   return (
@@ -166,6 +167,39 @@ const LandingPage = ({ setView, salonName, branding }) => {
             <p className="text-neutral-500 text-sm font-light leading-relaxed">Aceda à "Área do Cliente" para ter controlo total. Veja o seu histórico de serviços, pontuação do clube e muito mais.</p>
           </div>
         </div>
+      </section>
+
+      {/* BOUTIQUE CAROUSEL */}
+      <section className="py-16 md:py-24 px-4 md:px-6 max-w-7xl mx-auto border-b border-neutral-900">
+        <div className="flex justify-between items-end mb-10">
+          <div>
+            <h2 className="text-2xl md:text-4xl font-light mb-2">Boutique Exclusiva</h2>
+            <p className="text-neutral-500 font-light">Leve a nossa qualidade profissional para casa.</p>
+          </div>
+          <button onClick={() => setView('store')} className="text-theme text-sm font-medium hover:underline hidden md:block">
+            Ver todos os produtos
+          </button>
+        </div>
+        
+        <div className="flex overflow-x-auto gap-4 md:gap-6 pb-8 snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
+          {products.map(p => (
+            <div key={p.id} onClick={() => onProductClick(p)} className="min-w-[240px] md:min-w-[280px] snap-start cursor-pointer group">
+              <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden bg-neutral-900 mb-4 border border-neutral-800 group-hover:border-theme transition-colors relative">
+                <img src={p.image || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={p.name} />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                   <span className="bg-theme text-black px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
+                     <ShoppingBag size={16} /> Comprar
+                   </span>
+                </div>
+              </div>
+              <h4 className="text-base md:text-lg font-medium text-white mb-1 truncate">{p.name}</h4>
+              <p className="text-theme font-medium">R$ {p.price.toFixed(2)}</p>
+            </div>
+          ))}
+        </div>
+        <button onClick={() => setView('store')} className="w-full py-4 border border-neutral-800 rounded-xl text-neutral-400 hover:text-white md:hidden mt-4">
+          Ver todos os produtos
+        </button>
       </section>
 
       <section className="py-16 md:py-24 px-4 md:px-6 max-w-7xl mx-auto border-b border-neutral-900">
@@ -322,6 +356,114 @@ const BookingFlow = ({ setView, professionals, appointments, setAppointments }) 
             <h2 className="text-3xl font-light">Solicitado com Sucesso!</h2>
             <p className="text-neutral-400">Verifique o seu WhatsApp. Entraremos em contato em instantes.</p>
             <Button onClick={() => setView('landing')} className="mx-auto">Voltar ao Início</Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// --- STORE FLOW (BOUTIQUE / PÁGINA DE VENDAS) ---
+
+const StoreFlow = ({ setView, products, initialProduct, salonName }) => {
+  const [selectedProduct, setSelectedProduct] = useState(initialProduct);
+  const [step, setStep] = useState(initialProduct ? 2 : 1);
+  const [clientData, setClientData] = useState({ name: '', phone: '' });
+
+  const handleOrder = (e) => {
+    e.preventDefault();
+    setStep(3);
+  };
+
+  const handleWhatsAppRedirect = () => {
+    const message = `Olá! Gostaria de encomendar o produto *${selectedProduct.name}* (R$ ${selectedProduct.price.toFixed(2)}).\n\nMeu nome é ${clientData.name}.`;
+    const encoded = encodeURIComponent(message);
+    window.open(`https://wa.me/5511999999999?text=${encoded}`, '_blank');
+    setView('landing');
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-white p-4 md:p-8 animate-fade-in relative">
+      <button onClick={() => {
+        if (step === 2 && !initialProduct) setStep(1);
+        else setView('landing');
+      }} className="absolute top-6 left-6 text-neutral-500 hover:text-white flex items-center gap-2 transition-colors z-50">
+        <ChevronLeft /> Voltar
+      </button>
+
+      <div className="max-w-5xl mx-auto pt-12 md:pt-8">
+        {step === 1 && (
+          <div className="animate-fade-in">
+             <div className="text-center mb-12">
+               <h1 className="text-3xl md:text-5xl font-light mb-4">Boutique <span className="text-theme font-serif">{salonName.split(' ')[0]}</span></h1>
+               <p className="text-neutral-400">Linha exclusiva de cuidados para manter o resultado do salão em casa.</p>
+             </div>
+             
+             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {products.map(p => (
+                  <div key={p.id} onClick={() => { setSelectedProduct(p); setStep(2); }} className="cursor-pointer group">
+                    <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden bg-neutral-900 mb-4 border border-neutral-800 group-hover:border-theme transition-colors">
+                      <img src={p.image || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={p.name} />
+                    </div>
+                    <h4 className="text-lg font-medium text-white mb-1">{p.name}</h4>
+                    <p className="text-theme font-medium">R$ {p.price.toFixed(2)}</p>
+                  </div>
+                ))}
+             </div>
+          </div>
+        )}
+
+        {step === 2 && selectedProduct && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 items-center animate-fade-in">
+            <div className="rounded-3xl overflow-hidden border border-neutral-800 aspect-square md:aspect-[4/5] bg-neutral-900 relative">
+               <img src={selectedProduct.image || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80'} className="w-full h-full object-cover" alt={selectedProduct.name} />
+            </div>
+            
+            <div>
+               <div className="inline-block px-3 py-1 bg-theme-10 text-theme text-xs font-bold uppercase tracking-widest rounded-full mb-4">
+                 Pronta Entrega
+               </div>
+               <h1 className="text-3xl md:text-5xl font-light mb-4">{selectedProduct.name}</h1>
+               <p className="text-2xl font-medium text-theme mb-6">R$ {selectedProduct.price.toFixed(2)}</p>
+               <p className="text-neutral-400 leading-relaxed mb-8">
+                 {selectedProduct.description || 'Produto de alta performance com qualidade profissional garantida pelo nosso salão.'}
+               </p>
+
+               <div className="bg-neutral-900 border border-neutral-800 p-6 rounded-2xl">
+                 <h3 className="font-medium mb-4 flex items-center gap-2"><ShoppingBag size={18} className="text-theme"/> Reservar Produto</h3>
+                 <form onSubmit={handleOrder} className="space-y-4">
+                   <input 
+                     type="text" required placeholder="Seu Nome Completo" 
+                     value={clientData.name} onChange={e => setClientData({...clientData, name: e.target.value})}
+                     className="w-full bg-black border border-neutral-800 rounded-xl p-3 text-sm text-white focus:border-theme outline-none" 
+                   />
+                   <input 
+                     type="text" required placeholder="Seu WhatsApp (DDD)" 
+                     value={clientData.phone} onChange={e => setClientData({...clientData, phone: e.target.value})}
+                     className="w-full bg-black border border-neutral-800 rounded-xl p-3 text-sm text-white focus:border-theme outline-none" 
+                   />
+                   <Button type="submit" className="w-full py-4 mt-2">Garantir o Meu</Button>
+                 </form>
+               </div>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="text-center max-w-md mx-auto pt-12 animate-fade-in">
+            <div className="w-24 h-24 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle size={48} />
+            </div>
+            <h2 className="text-3xl font-light mb-4">Produto Reservado!</h2>
+            <p className="text-neutral-400 mb-8 leading-relaxed">
+              Separamos o seu <strong>{selectedProduct.name}</strong>. Por favor, envie uma mensagem para o nosso WhatsApp para combinarmos o pagamento e a retirada no salão.
+            </p>
+            <Button onClick={handleWhatsAppRedirect} className="w-full py-4 mb-4">
+              <MessageCircle size={18} /> Chamar no WhatsApp
+            </Button>
+            <button onClick={() => setView('landing')} className="text-neutral-500 hover:text-white text-sm">
+              Voltar ao Início
+            </button>
           </div>
         )}
       </div>
@@ -820,20 +962,39 @@ const AdminDashboard = ({
         <div className="animate-fade-in space-y-8">
           <div className="flex justify-between items-center">
             <h3 className="text-2xl font-light">Controle de Estoque</h3>
-            <Button className="text-xs"><Plus size={16}/> Novo Produto</Button>
+            <Button onClick={() => {
+              const name = prompt("Nome do Produto:");
+              if (!name) return;
+              const price = parseFloat(prompt("Preço (R$):") || "0");
+              const stock = parseInt(prompt("Quantidade Inicial em Estoque:") || "0");
+              const image = prompt("URL da Imagem (opcional):") || "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80";
+              const desc = prompt("Breve Descrição (opcional):") || "Produto de alta qualidade.";
+              
+              setProducts([...products, { id: Date.now(), name, price, stock, image, description: desc }]);
+            }} className="text-xs"><Plus size={16}/> Novo Produto</Button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {products.map(p => (
-              <Card key={p.id} className="relative group overflow-hidden">
+              <Card key={p.id} className="relative group overflow-hidden flex flex-col h-full">
                 <div className="flex justify-between items-start mb-4">
-                  <Package size={24} className="text-theme"/>
+                  <div className="w-12 h-12 rounded-lg bg-neutral-800 overflow-hidden shrink-0">
+                     <img src={p.image || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80'} alt="" className="w-full h-full object-cover" />
+                  </div>
                   <span className={`text-xs font-bold px-2 py-1 rounded-full ${p.stock < 5 ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}`}>{p.stock} un.</span>
                 </div>
                 <h4 className="text-lg font-medium">{p.name}</h4>
-                <p className="text-neutral-500 text-sm mb-6">Preço: R$ {p.price.toFixed(2)}</p>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1 py-2 text-xs">Editar</Button>
-                  <Button variant="ghost" className="flex-1 py-2 text-xs text-red-500"><Trash2 size={14}/></Button>
+                <p className="text-neutral-500 text-sm mb-4 line-clamp-2 leading-snug flex-1">{p.description}</p>
+                <p className="text-theme font-medium mb-6">Preço: R$ {p.price.toFixed(2)}</p>
+                <div className="flex gap-2 mt-auto">
+                  <Button variant="outline" onClick={() => {
+                     const novoStock = parseInt(prompt(`Atualizar estoque de ${p.name}:`, p.stock));
+                     if(!isNaN(novoStock)) setProducts(products.map(prod => prod.id === p.id ? {...prod, stock: novoStock} : prod));
+                  }} className="flex-1 py-2 text-xs">Estoque</Button>
+                  <Button variant="ghost" onClick={() => {
+                     if(window.confirm(`Tem certeza que deseja apagar ${p.name}?`)) {
+                        setProducts(products.filter(prod => prod.id !== p.id));
+                     }
+                  }} className="flex-1 py-2 text-xs text-red-500"><Trash2 size={14}/></Button>
                 </div>
               </Card>
             ))}
@@ -1039,6 +1200,7 @@ export default function App() {
   const [activeCall, setActiveCall] = useState(null);
   const [loggedPro, setLoggedPro] = useState(null);
   const [loggedClient, setLoggedClient] = useState(null);
+  const [selectedProductForStore, setSelectedProductForStore] = useState(null);
   const [user, setUser] = useState(null);
   const [dbState, setDbState] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
@@ -1083,7 +1245,7 @@ export default function App() {
           salonName: 'Donna Embelezamento',
           adminSettings: { name: 'João Proprietário', password: 'admin123' },
           branding: { 
-            primaryColor: '#D4AF37', // A cor dourada padrão
+            primaryColor: '#D4AF37',
             landingBg: 'https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?auto=format&fit=crop&w=1920&q=80', 
             tvBg: '', 
             instagramUrl: 'https://instagram.com/donna_embelezamento',
@@ -1156,6 +1318,7 @@ export default function App() {
         
         .focus\\:border-theme:focus { border-color: var(--primary) !important; outline: none; }
         .group:hover .group-hover\\:bg-theme { background-color: var(--primary) !important; }
+        .group:hover .group-hover\\:border-theme { border-color: var(--primary) !important; }
         
         ::selection { background-color: var(--primary-30); }
         @keyframes fade-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -1164,10 +1327,11 @@ export default function App() {
         body { background: black; -webkit-tap-highlight-color: transparent; }
       `}</style>
 
-      {view === 'landing' && <LandingPage setView={setView} salonName={salonName} branding={branding} />}
+      {view === 'landing' && <LandingPage setView={setView} salonName={salonName} branding={branding} products={products} onProductClick={(p) => { setSelectedProductForStore(p); setView('store'); }} />}
       {view === 'auth' && <AuthScreen setView={setView} professionals={professionals} setLoggedPro={setLoggedPro} adminSettings={adminSettings} setShowMasterLogin={setShowMasterLogin} />}
       {view === 'admin' && <AdminDashboard setView={setView} salonName={salonName} setSalonName={makeSetter('salonName')} adminSettings={adminSettings} setAdminSettings={makeSetter('adminSettings')} appointments={appointments} setAppointments={makeSetter('appointments')} professionals={professionals} setProfessionals={makeSetter('professionals')} products={products} setProducts={makeSetter('products')} sales={sales} setSales={makeSetter('sales')} clients={clients} setClients={makeSetter('clients')} expenses={expenses} setExpenses={makeSetter('expenses')} tvPlaylist={dbState?.tvPlaylist || []} setTvPlaylist={makeSetter('tvPlaylist')} tvVideoFit={dbState?.tvVideoFit || 'contain'} setTvVideoFit={makeSetter('tvVideoFit')} setActiveCall={setActiveCall} premiumFeatures={premiumFeatures} />}
       {view === 'booking' && <BookingFlow setView={setView} professionals={professionals} appointments={appointments} setAppointments={makeSetter('appointments')} />}
+      {view === 'store' && <StoreFlow setView={setView} products={products} initialProduct={selectedProductForStore} salonName={salonName} />}
       {view === 'master' && <MasterDashboard setView={setView} subscriptionDueDate={subscriptionDueDate} setSubscriptionDueDate={makeSetter('subscriptionDueDate')} premiumFeatures={premiumFeatures} setPremiumFeatures={makeSetter('premiumFeatures')} branding={branding} setBranding={makeSetter('branding')} />}
       
       {view === 'client_login' && <ClientLoginScreen setView={setView} clients={clients} setLoggedClient={setLoggedClient} />}
