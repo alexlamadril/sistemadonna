@@ -48,8 +48,8 @@ const Card = ({ children, className = "" }) => (
 
 const Button = ({ children, variant = 'primary', className = "", onClick, type = "button", disabled = false }) => {
   const variants = {
-    primary: 'bg-[var(--primary)] text-black hover:brightness-110',
-    outline: 'border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-black',
+    primary: 'bg-theme text-black hover:brightness-110',
+    outline: 'border border-theme text-theme hover:bg-theme hover:text-black',
     ghost: 'text-neutral-400 hover:text-white',
     danger: 'bg-red-600 text-white hover:bg-red-700'
   };
@@ -101,9 +101,9 @@ const LandingPage = ({ setView, salonName, branding }) => {
   return (
     <div className="bg-black text-white transition-colors duration-500 overflow-x-hidden">
       <nav className="absolute top-0 w-full z-50 p-6 flex justify-between items-start bg-gradient-to-b from-black/80 to-transparent">
-        <div className="text-[var(--primary)] font-serif tracking-widest text-lg pt-1">{shortName}</div>
+        <div className="text-theme font-serif tracking-widest text-lg pt-1">{shortName}</div>
         <div className="flex flex-col items-end gap-2">
-          <button onClick={() => setView('client_login')} className="flex items-center gap-2 text-sm font-medium hover:text-[var(--primary)] transition-colors"><User size={16} /> Área do Cliente</button>
+          <button onClick={() => setView('client_login')} className="flex items-center gap-2 text-sm font-medium hover:text-theme transition-colors"><User size={16} /> Área do Cliente</button>
           <button onClick={(e) => { e.preventDefault(); setView('auth'); }} className="flex items-center gap-1.5 text-[10px] sm:text-xs text-neutral-400 hover:text-white transition-colors"><Lock size={10} className="sm:w-3 sm:h-3" /> Acesso Restrito / Equipe</button>
         </div>
       </nav>
@@ -115,7 +115,7 @@ const LandingPage = ({ setView, salonName, branding }) => {
         </div>
         
         <div className="relative z-20 text-center w-full max-w-4xl mx-auto">
-          <div className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-[var(--primary-10)] border border-[var(--primary-30)] text-[var(--primary)] mb-8 animate-fade-in-up">
+          <div className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-theme-10 border border-theme-30 text-theme mb-8 animate-fade-in-up">
             <Star size={14} fill="currentColor" />
             <span className="text-xs uppercase tracking-widest font-bold">A {shortName} Evoluiu</span>
             <Star size={14} fill="currentColor" />
@@ -123,14 +123,14 @@ const LandingPage = ({ setView, salonName, branding }) => {
           
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-light mb-6 leading-tight animate-fade-in-up delay-100">
             O seu momento de beleza,<br/>
-            <span className="italic font-serif text-[var(--primary)] drop-shadow-lg">agora com tecnologia de luxo.</span>
+            <span className="italic font-serif text-theme drop-shadow-lg">agora com tecnologia de luxo.</span>
           </h1>
           <p className="text-neutral-300 text-base sm:text-lg md:text-xl mb-10 max-w-2xl mx-auto font-light animate-fade-in-up delay-200 leading-relaxed">
             Reinventamos o nosso atendimento para valorizar o seu tempo. Um novo sistema pensado exclusivamente para o seu conforto, transparência e benefícios.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-300">
-            <Button onClick={() => setView('booking')} className="px-10 py-4 text-base shadow-[0_0_40px_var(--primary-30)]">Agendar Horário</Button>
-            <Button variant="outline" onClick={() => setView('client_login')} className="px-10 py-4 text-base border-neutral-700 text-neutral-300 hover:border-[var(--primary)] hover:text-[var(--primary)] bg-black/40 backdrop-blur-md">Minha Área VIP</Button>
+            <Button onClick={() => setView('booking')} className="px-10 py-4 text-base shadow-theme">Agendar Horário</Button>
+            <Button variant="outline" onClick={() => setView('client_login')} className="px-10 py-4 text-base border-neutral-700 text-neutral-300 hover:border-theme hover:text-theme bg-black/40 backdrop-blur-md">Minha Área VIP</Button>
           </div>
         </div>
       </section>
@@ -142,26 +142,26 @@ const LandingPage = ({ setView, salonName, branding }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="bg-black p-8 rounded-3xl border border-neutral-800 hover:border-[var(--primary)] transition-colors group">
-            <Smartphone className="text-[var(--primary)] mb-6 group-hover:scale-110 transition-transform" size={36} />
+          <div className="bg-black p-8 rounded-3xl border border-neutral-800 hover:border-theme transition-colors group">
+            <Smartphone className="text-theme mb-6 group-hover:scale-110 transition-transform" size={36} />
             <h3 className="text-xl font-medium mb-3">Agendamento 24h</h3>
             <p className="text-neutral-500 text-sm font-light leading-relaxed">Faça a sua reserva a qualquer momento. Escolha o serviço, o profissional e o horário ideal diretamente do seu telemóvel.</p>
           </div>
 
-          <div className="bg-black p-8 rounded-3xl border border-neutral-800 hover:border-[var(--primary)] transition-colors group">
-            <MessageSquare className="text-[var(--primary)] mb-6 group-hover:scale-110 transition-transform" size={36} />
+          <div className="bg-black p-8 rounded-3xl border border-neutral-800 hover:border-theme transition-colors group">
+            <MessageSquare className="text-theme mb-6 group-hover:scale-110 transition-transform" size={36} />
             <h3 className="text-xl font-medium mb-3">Avisos no WhatsApp</h3>
             <p className="text-neutral-500 text-sm font-light leading-relaxed">Sem preocupações! O nosso sistema envia lembretes automáticos e carinhosos para o avisar da sua marcação.</p>
           </div>
 
-          <div className="bg-black p-8 rounded-3xl border border-neutral-800 hover:border-[var(--primary)] transition-colors group">
-            <Gift className="text-[var(--primary)] mb-6 group-hover:scale-110 transition-transform" size={36} />
+          <div className="bg-black p-8 rounded-3xl border border-neutral-800 hover:border-theme transition-colors group">
+            <Gift className="text-theme mb-6 group-hover:scale-110 transition-transform" size={36} />
             <h3 className="text-xl font-medium mb-3">Clube de Fidelidade</h3>
             <p className="text-neutral-500 text-sm font-light leading-relaxed">Sabe aquele cuidado especial? Agora ele gera pontos na sua conta que podem ser trocados por mimos e descontos exclusivos.</p>
           </div>
 
-          <div className="bg-black p-8 rounded-3xl border border-neutral-800 hover:border-[var(--primary)] transition-colors group">
-            <History className="text-[var(--primary)] mb-6 group-hover:scale-110 transition-transform" size={36} />
+          <div className="bg-black p-8 rounded-3xl border border-neutral-800 hover:border-theme transition-colors group">
+            <History className="text-theme mb-6 group-hover:scale-110 transition-transform" size={36} />
             <h3 className="text-xl font-medium mb-3">A sua Área Vip</h3>
             <p className="text-neutral-500 text-sm font-light leading-relaxed">Aceda à "Área do Cliente" para ter controlo total. Veja o seu histórico de serviços, pontuação do clube e muito mais.</p>
           </div>
@@ -170,17 +170,17 @@ const LandingPage = ({ setView, salonName, branding }) => {
 
       <section className="py-16 md:py-24 px-4 md:px-6 max-w-7xl mx-auto border-b border-neutral-900">
         <div className="text-center mb-12">
-          <a href={branding?.instagramUrl || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-neutral-900 border border-neutral-800 hover:border-[var(--primary)] text-[var(--primary)] mb-6 transition-colors group">
+          <a href={branding?.instagramUrl || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-neutral-900 border border-neutral-800 hover:border-theme text-theme mb-6 transition-colors group">
             <Instagram size={32} className="group-hover:scale-110 transition-transform" />
           </a>
           <h2 className="text-2xl md:text-4xl font-light mb-4">Acompanhe o nosso Portfólio</h2>
-          <a href={branding?.instagramUrl || '#'} target="_blank" rel="noopener noreferrer" className="text-neutral-500 hover:text-[var(--primary)] font-light transition-colors">
+          <a href={branding?.instagramUrl || '#'} target="_blank" rel="noopener noreferrer" className="text-neutral-500 hover:text-theme font-light transition-colors">
             Siga a nossa equipa no Instagram
           </a>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {(branding?.instagramImgs || []).map((img, i) => (
-            <a key={i} href={branding?.instagramUrl || '#'} target="_blank" rel="noopener noreferrer" className="group relative overflow-hidden rounded-xl aspect-square block border border-neutral-800 hover:border-[var(--primary)] transition-colors">
+            <a key={i} href={branding?.instagramUrl || '#'} target="_blank" rel="noopener noreferrer" className="group relative overflow-hidden rounded-xl aspect-square block border border-neutral-800 hover:border-theme transition-colors">
               <img src={img} className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110" alt={`Portfolio ${i}`} />
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <Instagram className="text-white" size={32} />
@@ -192,7 +192,7 @@ const LandingPage = ({ setView, salonName, branding }) => {
 
       <footer className="py-12 px-6 flex flex-col items-center gap-6 text-neutral-600 relative bg-neutral-950">
         <div className="flex gap-6 text-sm">
-          <a href={branding?.instagramUrl || '#'} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--primary)] flex items-center gap-2 transition-colors"><Instagram size={16}/> Instagram</a>
+          <a href={branding?.instagramUrl || '#'} target="_blank" rel="noopener noreferrer" className="hover:text-theme flex items-center gap-2 transition-colors"><Instagram size={16}/> Instagram</a>
           <button onClick={(e) => { e.preventDefault(); setView('auth'); }} className="hover:text-white flex items-center gap-2 transition-colors"><Lock size={16}/> Acesso Equipe</button>
         </div>
         <p className="text-xs">© 2026 {salonName}. Plataforma SaaS.</p>
@@ -228,10 +228,10 @@ const AuthScreen = ({ setView, professionals, setLoggedPro, adminSettings, setSh
       <div className="w-full max-w-md bg-black border border-neutral-900 rounded-3xl overflow-hidden shadow-2xl p-8 animate-fade-in">
         {!selectedProfile ? (
           <>
-            <h2 className="text-2xl font-light mb-8 text-white flex items-center gap-2"><Briefcase size={24} className="text-[var(--primary)]"/> Acesso Equipe</h2>
+            <h2 className="text-2xl font-light mb-8 text-white flex items-center gap-2"><Briefcase size={24} className="text-theme"/> Acesso Equipe</h2>
             <div className="space-y-3">
               {allProfiles.map(profile => (
-                <button key={profile.id} onClick={() => { setSelectedProfile(profile); setError(false); }} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-neutral-900 border border-neutral-800 transition-all text-left hover:border-[var(--primary)]">
+                <button key={profile.id} onClick={() => { setSelectedProfile(profile); setError(false); }} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-neutral-900 border border-neutral-800 transition-all text-left hover:border-theme">
                   <img src={profile.image} className="w-12 h-12 rounded-full object-cover" alt="" />
                   <div className="flex-1">
                     <h4 className="font-medium text-white">{profile.name}</h4>
@@ -248,7 +248,7 @@ const AuthScreen = ({ setView, professionals, setLoggedPro, adminSettings, setSh
             <button onClick={() => setSelectedProfile(null)} className="absolute -top-4 -left-4 text-neutral-500 hover:text-white p-2"><ChevronLeft /></button>
             <h2 className="text-xl font-medium text-white mb-8">Olá, {selectedProfile.name}</h2>
             <form onSubmit={handleLogin} className="w-full max-w-xs space-y-4 text-center">
-              <input type="password" placeholder="Senha" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className={`w-full bg-neutral-900 border ${error ? 'border-red-500' : 'border-neutral-800'} rounded-xl p-4 text-center text-white outline-none focus:border-[var(--primary)]`} autoFocus />
+              <input type="password" placeholder="Senha" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className={`w-full bg-neutral-900 border ${error ? 'border-red-500' : 'border-neutral-800'} rounded-xl p-4 text-center text-white outline-none focus:border-theme`} autoFocus />
               <Button type="submit" className="w-full py-4">Entrar</Button>
             </form>
           </div>
@@ -277,8 +277,8 @@ const BookingFlow = ({ setView, professionals, appointments, setAppointments }) 
           <div className="space-y-6">
               <h2 className="text-3xl font-light">Agendamento Digital</h2>
               <div className="space-y-4">
-                <input type="text" placeholder="Seu Nome Completo" onChange={e => setClientData({...clientData, name: e.target.value})} className="w-full bg-neutral-900 p-4 rounded-xl border border-neutral-800 outline-none focus:border-[var(--primary)]" />
-                <input type="text" placeholder="WhatsApp (DDD)" onChange={e => setClientData({...clientData, phone: e.target.value})} className="w-full bg-neutral-900 p-4 rounded-xl border border-neutral-800 outline-none focus:border-[var(--primary)]" />
+                <input type="text" placeholder="Seu Nome Completo" onChange={e => setClientData({...clientData, name: e.target.value})} className="w-full bg-neutral-900 p-4 rounded-xl border border-neutral-800 outline-none focus:border-theme" />
+                <input type="text" placeholder="WhatsApp (DDD)" onChange={e => setClientData({...clientData, phone: e.target.value})} className="w-full bg-neutral-900 p-4 rounded-xl border border-neutral-800 outline-none focus:border-theme" />
                 <Button onClick={() => setStep(2)} className="w-full py-4" disabled={!clientData.name || !clientData.phone}>Ver Serviços</Button>
                 <button onClick={() => setView('landing')} className="w-full text-neutral-500 py-2 hover:text-white">Cancelar</button>
               </div>
@@ -288,9 +288,9 @@ const BookingFlow = ({ setView, professionals, appointments, setAppointments }) 
           <div className="space-y-4">
             <h2 className="text-2xl font-light mb-6">O que deseja realizar?</h2>
             {INITIAL_SERVICES.map(s => (
-              <button key={s.id} onClick={() => { setSelection({...selection, service: s}); setStep(3); }} className="w-full p-5 bg-neutral-900 rounded-xl border border-neutral-800 text-left hover:border-[var(--primary)] transition-all flex justify-between items-center">
+              <button key={s.id} onClick={() => { setSelection({...selection, service: s}); setStep(3); }} className="w-full p-5 bg-neutral-900 rounded-xl border border-neutral-800 text-left hover:border-theme transition-all flex justify-between items-center">
                 <span>{s.name}</span>
-                <span className="text-[var(--primary)] text-sm">R$ {s.price}</span>
+                <span className="text-theme text-sm">R$ {s.price}</span>
               </button>
             ))}
           </div>
@@ -299,7 +299,7 @@ const BookingFlow = ({ setView, professionals, appointments, setAppointments }) 
           <div className="space-y-4">
             <h2 className="text-2xl font-light mb-6">Escolha o Profissional</h2>
             {professionals.map(p => (
-              <button key={p.id} onClick={() => { setSelection({...selection, professional: p}); setStep(4); }} className="w-full p-4 bg-neutral-900 rounded-xl border border-neutral-800 text-left hover:border-[var(--primary)] transition-all flex items-center gap-4">
+              <button key={p.id} onClick={() => { setSelection({...selection, professional: p}); setStep(4); }} className="w-full p-4 bg-neutral-900 rounded-xl border border-neutral-800 text-left hover:border-theme transition-all flex items-center gap-4">
                 <img src={p.image} className="w-10 h-10 rounded-full object-cover" alt="" />
                 <span>{p.name}</span>
               </button>
@@ -311,7 +311,7 @@ const BookingFlow = ({ setView, professionals, appointments, setAppointments }) 
             <h2 className="text-2xl font-light mb-6">Selecione o Horário</h2>
             <div className="grid grid-cols-3 gap-2">
               {['09:00', '10:30', '14:00', '15:30', '17:00', '18:30'].map(t => (
-                <button key={t} onClick={() => { setSelection({...selection, time: t}); handleSubmitRequest(); }} className="p-4 bg-neutral-900 rounded-xl border border-neutral-800 hover:text-[var(--primary)] hover:border-[var(--primary)]">{t}</button>
+                <button key={t} onClick={() => { setSelection({...selection, time: t}); handleSubmitRequest(); }} className="p-4 bg-neutral-900 rounded-xl border border-neutral-800 hover:text-theme hover:border-theme">{t}</button>
               ))}
             </div>
           </div>
@@ -356,7 +356,7 @@ const ClientLoginScreen = ({ setView, clients, setLoggedClient }) => {
 
       <div className="w-full max-w-md bg-black border border-neutral-900 rounded-3xl overflow-hidden shadow-2xl p-6 sm:p-8 animate-fade-in">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-[var(--primary-10)] text-[var(--primary)] rounded-full flex items-center justify-center mb-4">
+          <div className="w-16 h-16 bg-theme-10 text-theme rounded-full flex items-center justify-center mb-4">
             <Star size={32} fill="currentColor" />
           </div>
           <h2 className="text-2xl font-light text-white">Área VIP do Cliente</h2>
@@ -370,7 +370,7 @@ const ClientLoginScreen = ({ setView, clients, setLoggedClient }) => {
               placeholder="Ex: 5511999999999"
               value={phoneInput}
               onChange={(e) => setPhoneInput(e.target.value)}
-              className={`w-full bg-neutral-900 border ${error ? 'border-red-500' : 'border-neutral-800'} rounded-xl p-4 text-center text-white outline-none focus:border-[var(--primary)] tracking-widest text-lg`}
+              className={`w-full bg-neutral-900 border ${error ? 'border-red-500' : 'border-neutral-800'} rounded-xl p-4 text-center text-white outline-none focus:border-theme tracking-widest text-lg`}
               autoFocus
             />
             {error && <p className="text-red-500 text-xs text-center mt-2 animate-pulse">Telefone não encontrado. Verifique se incluiu o DDD ou fale com a nossa equipa.</p>}
@@ -405,12 +405,12 @@ const ClientDashboard = ({ setView, theme, setTheme, salonName, loggedClient, ap
             <h1 className="text-2xl md:text-3xl font-light">Minha Área</h1>
           </div>
           <div className="flex items-center gap-3 md:gap-4 justify-between w-full sm:w-auto">
-            <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className={`p-2 rounded-full ${theme === 'dark' ? 'bg-neutral-900 text-[var(--primary)] border border-neutral-800' : 'bg-white text-yellow-600 shadow-md border border-neutral-200'} transition-all`}><Sun size={20} /></button>
+            <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className={`p-2 rounded-full ${theme === 'dark' ? 'bg-neutral-900 text-theme border border-neutral-800' : 'bg-white text-yellow-600 shadow-md border border-neutral-200'} transition-all`}><Sun size={20} /></button>
             <div className="flex items-center gap-2 md:gap-3 sm:ml-4">
-              <div className="w-8 h-8 md:w-10 md:h-10 bg-[var(--primary)] rounded-full flex items-center justify-center text-black font-medium text-sm md:text-base">{clientInitials}</div>
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-theme rounded-full flex items-center justify-center text-black font-medium text-sm md:text-base">{clientInitials}</div>
               <div className="text-left">
                 <div className="font-medium text-sm">{loggedClient?.name || 'Cliente Premium'}</div>
-                <div className="text-[10px] md:text-xs text-[var(--primary)] font-medium tracking-wide uppercase">Membro Gold</div>
+                <div className="text-[10px] md:text-xs text-theme font-medium tracking-wide uppercase">Membro Gold</div>
               </div>
             </div>
           </div>
@@ -419,9 +419,9 @@ const ClientDashboard = ({ setView, theme, setTheme, salonName, loggedClient, ap
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           <aside className="space-y-6">
             <Card className={theme === 'dark' ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-neutral-200 shadow-sm'}>
-              <div className="flex items-center gap-3 text-[var(--primary)] mb-4"><Gift size={24} /><h3 className="text-lg md:text-xl font-medium">{clubName}</h3></div>
+              <div className="flex items-center gap-3 text-theme mb-4"><Gift size={24} /><h3 className="text-lg md:text-xl font-medium">{clubName}</h3></div>
               <div className="mb-2 flex justify-between items-end"><span className={`text-3xl md:text-4xl font-light ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{totalPoints}</span><span className="text-xs md:text-sm text-neutral-500 mb-1">pontos</span></div>
-              <div className="h-2 w-full bg-neutral-800 rounded-full overflow-hidden mb-4"><div className="h-full bg-[var(--primary)]" style={{ width: '60%' }} /></div>
+              <div className="h-2 w-full bg-neutral-800 rounded-full overflow-hidden mb-4"><div className="h-full bg-theme" style={{ width: '60%' }} /></div>
               <Button className="w-full mt-6 py-2 text-sm">Resgatar Benefícios</Button>
             </Card>
           </aside>
@@ -443,9 +443,9 @@ const ClientDashboard = ({ setView, theme, setTheme, salonName, loggedClient, ap
                     const pointsGained = Math.floor((item.value || 0) / 10);
                     
                     return (
-                      <div key={item.id} className={`p-4 md:p-6 rounded-2xl border ${theme === 'dark' ? 'bg-neutral-900 border-neutral-800 hover:border-[var(--primary)]' : 'bg-white border-neutral-200 shadow-sm'} transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4`}>
+                      <div key={item.id} className={`p-4 md:p-6 rounded-2xl border ${theme === 'dark' ? 'bg-neutral-900 border-neutral-800 hover:border-theme' : 'bg-white border-neutral-200 shadow-sm'} transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4`}>
                         <div className="flex items-center gap-3 md:gap-4">
-                          <div className="w-10 h-10 md:w-12 md:h-12 bg-[var(--primary-10)] rounded-full flex items-center justify-center text-[var(--primary)] shrink-0"><CheckCircle size={20} /></div>
+                          <div className="w-10 h-10 md:w-12 md:h-12 bg-theme-10 rounded-full flex items-center justify-center text-theme shrink-0"><CheckCircle size={20} /></div>
                           <div>
                             <h4 className="font-medium text-base md:text-lg">{item.service}</h4>
                             <p className="text-neutral-500 text-xs md:text-sm">Com {pro ? pro.name : 'Nossa Equipe'} • {item.time || 'Data Indisponível'}</p>
@@ -453,7 +453,7 @@ const ClientDashboard = ({ setView, theme, setTheme, salonName, loggedClient, ap
                         </div>
                         <div className="text-left sm:text-right border-t border-neutral-800/50 sm:border-t-0 pt-3 sm:pt-0 mt-1 sm:mt-0">
                           <div className="font-medium text-sm md:text-base">R$ {item.value}</div>
-                          <div className="text-[10px] md:text-xs text-[var(--primary)] font-medium mt-1 flex items-center gap-1 sm:justify-end"><Star size={12} fill="currentColor" /> +{pointsGained} pts</div>
+                          <div className="text-[10px] md:text-xs text-theme font-medium mt-1 flex items-center gap-1 sm:justify-end"><Star size={12} fill="currentColor" /> +{pointsGained} pts</div>
                         </div>
                       </div>
                     )
@@ -483,7 +483,7 @@ const ProfessionalApp = ({ setView, loggedPro, appointments, setAppointments, pr
       <div className="w-full max-w-md bg-black min-h-screen relative shadow-2xl md:border-x md:border-neutral-900 flex flex-col">
         <div className="p-4 md:p-6 border-b border-neutral-900 flex justify-between items-center bg-black/80 backdrop-blur-md sticky top-0 z-20">
           <button onClick={() => setView('landing')} className="text-neutral-500 hover:text-white flex items-center gap-1.5 md:gap-2 text-xs md:text-sm"><LogOut size={14} /> Sair</button>
-          <div className="text-[var(--primary)] font-serif tracking-widest text-[10px] md:text-xs uppercase">{shortProName} Pro</div>
+          <div className="text-theme font-serif tracking-widest text-[10px] md:text-xs uppercase">{shortProName} Pro</div>
           <Briefcase size={16} className="text-neutral-700" />
         </div>
 
@@ -492,7 +492,7 @@ const ProfessionalApp = ({ setView, loggedPro, appointments, setAppointments, pr
             <div className="flex items-center justify-between mb-6 md:mb-8">
               <div>
                 <h2 className="text-xl md:text-2xl font-light text-white">Agenda de Hoje</h2>
-                <p className="text-[var(--primary)] text-xs md:text-sm mt-0.5 md:mt-1">{myAppointments.length} agendamentos</p>
+                <p className="text-theme text-xs md:text-sm mt-0.5 md:mt-1">{myAppointments.length} agendamentos</p>
               </div>
               <img src={loggedPro?.image} className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border border-neutral-800 shrink-0" alt="" />
             </div>
@@ -503,13 +503,13 @@ const ProfessionalApp = ({ setView, loggedPro, appointments, setAppointments, pr
               <div className="space-y-3 md:space-y-4">
                 {myAppointments.map((app, index) => (
                   <div key={index} className={`bg-neutral-900 p-3 md:p-4 rounded-xl md:rounded-2xl border ${app.status === 'Pendente' ? 'border-orange-500/50' : 'border-neutral-800'} relative overflow-hidden`}>
-                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${app.status === 'Confirmado' ? 'bg-green-500' : app.status === 'Pendente' ? 'bg-orange-500' : 'bg-[var(--primary)]'}`} />
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${app.status === 'Confirmado' ? 'bg-green-500' : app.status === 'Pendente' ? 'bg-orange-500' : 'bg-theme'}`} />
                     <div className="flex justify-between items-start mb-1.5 md:mb-2 pl-2">
                       <span className="text-lg md:text-xl font-light text-white flex items-center gap-1.5 md:gap-2">{app.time}</span>
                       <div className="flex items-center gap-1.5 md:gap-2">
-                        <span className={`text-[8px] md:text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded-md ${app.status === 'Confirmado' ? 'bg-green-500/10 text-green-500' : app.status === 'Pendente' ? 'bg-orange-500/10 text-orange-500' : 'bg-[var(--primary-10)] text-[var(--primary)]'}`}>{app.status}</span>
+                        <span className={`text-[8px] md:text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded-md ${app.status === 'Confirmado' ? 'bg-green-500/10 text-green-500' : app.status === 'Pendente' ? 'bg-orange-500/10 text-orange-500' : 'bg-theme-10 text-theme'}`}>{app.status}</span>
                         {(app.status === 'Confirmado' || app.status === 'Em andamento') && (
-                          <button onClick={() => setActiveCall(app)} className="w-6 h-6 md:w-7 md:h-7 rounded-md bg-neutral-800 hover:bg-[var(--primary)] hover:text-black flex items-center justify-center transition-colors text-neutral-400 shrink-0"><Megaphone size={12} /></button>
+                          <button onClick={() => setActiveCall(app)} className="w-6 h-6 md:w-7 md:h-7 rounded-md bg-neutral-800 hover:bg-theme hover:text-black flex items-center justify-center transition-colors text-neutral-400 shrink-0"><Megaphone size={12} /></button>
                         )}
                       </div>
                     </div>
@@ -592,18 +592,18 @@ const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], 
       <div className="relative z-30 text-center px-4 w-full max-w-5xl pointer-events-none">
         {activeCall ? (
           <div className="animate-fade-in-up">
-            <h2 className="text-2xl md:text-4xl lg:text-5xl text-[var(--primary)] font-light mb-4 md:mb-8 uppercase tracking-widest drop-shadow-md">Chegou a sua vez</h2>
+            <h2 className="text-2xl md:text-4xl lg:text-5xl text-theme font-light mb-4 md:mb-8 uppercase tracking-widest drop-shadow-md">Chegou a sua vez</h2>
             <h1 className="text-5xl sm:text-7xl md:text-[120px] font-bold text-green-400 animate-pulse mb-6 md:mb-8 tracking-tight leading-none drop-shadow-[0_0_30px_rgba(74,222,128,0.5)]">{activeCall.client.split(' ')[0]}</h1>
             <div className="mt-8 md:mt-12 bg-neutral-900/90 backdrop-blur-xl border border-neutral-800 rounded-2xl md:rounded-3xl p-6 md:p-8 inline-block shadow-2xl">
               <p className="text-lg md:text-2xl text-neutral-400 mb-1 md:mb-2">Por favor, dirija-se ao profissional</p>
               <p className="text-2xl md:text-4xl text-white font-medium">{professionals.find(p => p.id === activeCall.proId)?.name || 'Nossa Equipe'}</p>
-              <p className="text-base md:text-xl text-[var(--primary)] mt-2 md:mt-4">{activeCall.service}</p>
+              <p className="text-base md:text-xl text-theme mt-2 md:mt-4">{activeCall.service}</p>
             </div>
           </div>
         ) : (
           tvPlaylist.length === 0 && (
             <div className="animate-fade-in opacity-40 transition-opacity duration-1000">
-              <h1 className="text-4xl sm:text-6xl md:text-9xl font-serif text-[var(--primary)] tracking-[0.2em] drop-shadow-lg">{shortName}</h1>
+              <h1 className="text-4xl sm:text-6xl md:text-9xl font-serif text-theme tracking-[0.2em] drop-shadow-lg">{shortName}</h1>
               <p className="text-base md:text-2xl text-neutral-500 mt-4 md:mt-8 tracking-widest uppercase font-light">Aguarde ser chamado(a)</p>
             </div>
           )
@@ -675,43 +675,43 @@ const AdminDashboard = ({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
           <div className="lg:col-span-2 space-y-8">
             <Card>
-              <h3 className="text-lg font-medium mb-6 flex items-center gap-2 text-[var(--primary)]"><Clock size={20}/> Serviços para Cobrança</h3>
+              <h3 className="text-lg font-medium mb-6 flex items-center gap-2 text-theme"><Clock size={20}/> Serviços para Cobrança</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {appointments.filter(a => a.status !== 'Concluído').map(app => (
-                  <div key={app.id} className="p-4 bg-black rounded-xl border border-neutral-800 flex justify-between items-center group hover:border-[var(--primary)] transition-all">
+                  <div key={app.id} className="p-4 bg-black rounded-xl border border-neutral-800 flex justify-between items-center group hover:border-theme transition-all">
                     <div>
                       <div className="font-medium text-white">{app.client}</div>
                       <div className="text-xs text-neutral-500">{app.service} • R$ {app.value}</div>
                     </div>
-                    <button onClick={() => setCart([...cart, { ...app, type: 'service' }])} className="w-10 h-10 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-500 group-hover:bg-[var(--primary)] group-hover:text-black transition-all"><Plus size={18}/></button>
+                    <button onClick={() => setCart([...cart, { ...app, type: 'service' }])} className="w-10 h-10 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-500 group-hover:bg-theme group-hover:text-black transition-all"><Plus size={18}/></button>
                   </div>
                 ))}
               </div>
             </Card>
             <Card>
-              <h3 className="text-lg font-medium mb-6 flex items-center gap-2 text-[var(--primary)]"><ShoppingBag size={20}/> Venda de Produtos</h3>
+              <h3 className="text-lg font-medium mb-6 flex items-center gap-2 text-theme"><ShoppingBag size={20}/> Venda de Produtos</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {products.map(p => (
-                  <div key={p.id} className="p-4 bg-black rounded-xl border border-neutral-800 flex justify-between items-center group hover:border-[var(--primary)] transition-all">
+                  <div key={p.id} className="p-4 bg-black rounded-xl border border-neutral-800 flex justify-between items-center group hover:border-theme transition-all">
                     <div>
                       <div className="font-medium text-white">{p.name}</div>
                       <div className="text-xs text-neutral-500">Estoque: {p.stock} • R$ {p.price}</div>
                     </div>
-                    <button onClick={() => setCart([...cart, { ...p, type: 'product' }])} className="w-10 h-10 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-500 group-hover:bg-[var(--primary)] group-hover:text-black transition-all"><Plus size={18}/></button>
+                    <button onClick={() => setCart([...cart, { ...p, type: 'product' }])} className="w-10 h-10 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-500 group-hover:bg-theme group-hover:text-black transition-all"><Plus size={18}/></button>
                   </div>
                 ))}
               </div>
             </Card>
           </div>
           <div className="lg:col-span-1">
-            <Card className="sticky top-8 bg-neutral-950 border-[var(--primary-30)]">
-               <h3 className="text-xl font-light mb-8 flex items-center gap-2 text-[var(--primary)]"><Receipt size={24}/> Checkout</h3>
+            <Card className="sticky top-8 bg-neutral-950 border-theme-30">
+               <h3 className="text-xl font-light mb-8 flex items-center gap-2 text-theme"><Receipt size={24}/> Checkout</h3>
                <div className="space-y-4 mb-8 min-h-[200px]">
                  {cart.map((item, i) => (
                    <div key={i} className="flex justify-between items-center border-b border-neutral-800 pb-2">
                      <span className="text-sm text-white">{item.client || item.name}</span>
                      <div className="flex items-center gap-3">
-                        <span className="text-[var(--primary)] font-medium">R$ {item.value || item.price}</span>
+                        <span className="text-theme font-medium">R$ {item.value || item.price}</span>
                         <button onClick={() => setCart(cart.filter((_, idx) => idx !== i))} className="text-neutral-600 hover:text-red-500"><Trash2 size={16}/></button>
                      </div>
                    </div>
@@ -746,9 +746,9 @@ const AdminDashboard = ({
               <h3 className="text-lg font-medium mb-6">Próximos da Agenda</h3>
               <div className="space-y-4">
                 {appointments.map(a => (
-                  <div key={a.id} className="p-4 bg-black rounded-xl border border-neutral-800 flex justify-between items-center hover:border-[var(--primary)] transition-colors">
+                  <div key={a.id} className="p-4 bg-black rounded-xl border border-neutral-800 flex justify-between items-center hover:border-theme transition-colors">
                     <div><p className="font-medium">{a.client}</p><p className="text-xs text-neutral-500">{a.service} • {a.time}</p></div>
-                    <button onClick={() => setActiveCall(a)} className="p-2 text-[var(--primary)] hover:bg-[var(--primary-10)] rounded-full transition-all"><Megaphone size={20}/></button>
+                    <button onClick={() => setActiveCall(a)} className="p-2 text-theme hover:bg-theme-10 rounded-full transition-all"><Megaphone size={20}/></button>
                   </div>
                 ))}
               </div>
@@ -760,8 +760,8 @@ const AdminDashboard = ({
                    <div key={p.id} className="flex items-center gap-4">
                      <img src={p.image} className="w-12 h-12 rounded-full object-cover" alt="" />
                      <div className="flex-1">
-                       <div className="flex justify-between mb-1"><span className="font-medium">{p.name}</span><span className="text-[var(--primary)]">{p.rating} ★</span></div>
-                       <div className="h-2 w-full bg-neutral-800 rounded-full overflow-hidden"><div className="h-full bg-[var(--primary)]" style={{ width: '85%' }} /></div>
+                       <div className="flex justify-between mb-1"><span className="font-medium">{p.name}</span><span className="text-theme">{p.rating} ★</span></div>
+                       <div className="h-2 w-full bg-neutral-800 rounded-full overflow-hidden"><div className="h-full bg-theme" style={{ width: '85%' }} /></div>
                      </div>
                    </div>
                  ))}
@@ -826,7 +826,7 @@ const AdminDashboard = ({
             {products.map(p => (
               <Card key={p.id} className="relative group overflow-hidden">
                 <div className="flex justify-between items-start mb-4">
-                  <Package size={24} className="text-[var(--primary)]"/>
+                  <Package size={24} className="text-theme"/>
                   <span className={`text-xs font-bold px-2 py-1 rounded-full ${p.stock < 5 ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}`}>{p.stock} un.</span>
                 </div>
                 <h4 className="text-lg font-medium">{p.name}</h4>
@@ -843,18 +843,18 @@ const AdminDashboard = ({
       case 'settings': return (
         <div className="animate-fade-in space-y-8 max-w-2xl">
           <Card>
-            <h3 className="text-xl font-light mb-8 flex items-center gap-2 text-[var(--primary)]"><Settings size={22}/> Configurações Donna</h3>
+            <h3 className="text-xl font-light mb-8 flex items-center gap-2 text-theme"><Settings size={22}/> Configurações Donna</h3>
             <div className="space-y-8">
               <div>
                 <label className="text-xs text-neutral-500 uppercase mb-2 block tracking-widest">Nome da Marca</label>
-                <input type="text" value={salonName} onChange={e => setSalonName(e.target.value)} className="w-full bg-black border border-neutral-800 rounded-xl p-4 text-white focus:border-[var(--primary)] outline-none" />
+                <input type="text" value={salonName} onChange={e => setSalonName(e.target.value)} className="w-full bg-black border border-neutral-800 rounded-xl p-4 text-white focus:border-theme outline-none" />
               </div>
               <hr className="border-neutral-800" />
               <div>
-                <h4 className="text-base font-medium mb-4 flex items-center gap-2"><Shield size={18} className="text-[var(--primary)]"/> Credenciais Admin</h4>
+                <h4 className="text-base font-medium mb-4 flex items-center gap-2"><Shield size={18} className="text-theme"/> Credenciais Admin</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <input type="text" placeholder="Nome do Dono" value={adminSettings?.name || ''} onChange={e => setAdminSettings({...adminSettings, name: e.target.value})} className="w-full bg-black border border-neutral-800 rounded-xl p-3 text-white focus:border-[var(--primary)] outline-none" />
-                  <input type="text" placeholder="Senha Master" value={adminSettings?.password || ''} onChange={e => setAdminSettings({...adminSettings, password: e.target.value})} className="w-full bg-black border border-neutral-800 rounded-xl p-3 text-white focus:border-[var(--primary)] outline-none" />
+                  <input type="text" placeholder="Nome do Dono" value={adminSettings?.name || ''} onChange={e => setAdminSettings({...adminSettings, name: e.target.value})} className="w-full bg-black border border-neutral-800 rounded-xl p-3 text-white focus:border-theme outline-none" />
+                  <input type="text" placeholder="Senha Master" value={adminSettings?.password || ''} onChange={e => setAdminSettings({...adminSettings, password: e.target.value})} className="w-full bg-black border border-neutral-800 rounded-xl p-3 text-white focus:border-theme outline-none" />
                 </div>
               </div>
 
@@ -863,7 +863,7 @@ const AdminDashboard = ({
               <div>
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <h4 className="text-base font-medium flex items-center gap-2"><MonitorPlay size={18} className="text-[var(--primary)]"/> Mídia da TV</h4>
+                    <h4 className="text-base font-medium flex items-center gap-2"><MonitorPlay size={18} className="text-theme"/> Mídia da TV</h4>
                     <p className="text-xs text-neutral-500 mt-1">Configure vídeos ou banners para rodar na TV da sala de espera.</p>
                   </div>
                   <Button onClick={() => {
@@ -888,7 +888,7 @@ const AdminDashboard = ({
                      tvPlaylist.map((media) => (
                        <div key={media.id} className="flex justify-between items-center p-3 bg-neutral-900 rounded-lg border border-neutral-800">
                          <div className="flex items-center gap-3">
-                           <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-[var(--primary)]">{media.type === 'video' ? <Video size={14}/> : <ImageIcon size={14}/>}</div>
+                           <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-theme">{media.type === 'video' ? <Video size={14}/> : <ImageIcon size={14}/>}</div>
                            <div><p className="font-medium text-sm text-white">{media.name}</p><p className="text-xs text-neutral-500">{media.type === 'video' ? 'Vídeo' : `Imagem (${media.duration / 1000}s)`}</p></div>
                          </div>
                          <button onClick={() => setTvPlaylist(tvPlaylist.filter(m => m.id !== media.id))} className="text-neutral-500 hover:text-red-500"><Trash2 size={16}/></button>
@@ -897,7 +897,7 @@ const AdminDashboard = ({
                   )}
                 </div>
 
-                <select value={tvVideoFit} onChange={e => setTvVideoFit(e.target.value)} className="w-full bg-black border border-neutral-800 rounded-xl p-3 text-sm text-white focus:border-[var(--primary)] outline-none">
+                <select value={tvVideoFit} onChange={e => setTvVideoFit(e.target.value)} className="w-full bg-black border border-neutral-800 rounded-xl p-3 text-sm text-white focus:border-theme outline-none">
                   <option value="contain">Enquadrar Inteiro (mantém as proporções originais)</option>
                   <option value="cover">Preencher Tela Inteira (sem bordas pretas)</option>
                 </select>
@@ -917,14 +917,14 @@ const AdminDashboard = ({
   return (
     <div className="min-h-screen bg-black text-white flex overflow-hidden">
       <aside className="w-64 border-r border-neutral-800 p-6 flex flex-col gap-6 bg-neutral-950/50">
-        <div className="text-xl font-serif tracking-widest text-[var(--primary)] flex items-center gap-2 mb-8"><div className="w-4 h-4 bg-[var(--primary)] rounded-full"></div> ADMIN</div>
+        <div className="text-xl font-serif tracking-widest text-theme flex items-center gap-2 mb-8"><div className="w-4 h-4 bg-theme rounded-full"></div> ADMIN</div>
         <nav className="flex flex-col gap-1 flex-1">
-          <button onClick={() => setActiveTab('pdv')} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 ${activeTab === 'pdv' ? 'bg-[var(--primary-10)] text-[var(--primary)]' : 'text-neutral-500 hover:text-white'}`}><Receipt size={18}/> Caixa (PDV)</button>
-          <button onClick={() => setActiveTab('overview')} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 ${activeTab === 'overview' ? 'bg-[var(--primary-10)] text-[var(--primary)]' : 'text-neutral-500 hover:text-white'}`}><LayoutDashboard size={18}/> Visão Geral</button>
-          <button onClick={() => setActiveTab('clients')} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 ${activeTab === 'clients' ? 'bg-[var(--primary-10)] text-[var(--primary)]' : 'text-neutral-500 hover:text-white'}`}><Heart size={18}/> Clientes CRM</button>
-          <button onClick={() => setActiveTab('financial')} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 ${activeTab === 'financial' ? 'bg-[var(--primary-10)] text-[var(--primary)]' : 'text-neutral-500 hover:text-white'}`}><DollarSign size={18}/> Financeiro</button>
-          <button onClick={() => setActiveTab('inventory')} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 ${activeTab === 'inventory' ? 'bg-[var(--primary-10)] text-[var(--primary)]' : 'text-neutral-500 hover:text-white'}`}><Package size={18}/> Produtos</button>
-          <button onClick={() => setActiveTab('settings')} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 ${activeTab === 'settings' ? 'bg-[var(--primary-10)] text-[var(--primary)]' : 'text-neutral-500 hover:text-white'}`}><Settings size={18}/> Configurações</button>
+          <button onClick={() => setActiveTab('pdv')} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 ${activeTab === 'pdv' ? 'bg-theme-10 text-theme' : 'text-neutral-500 hover:text-white'}`}><Receipt size={18}/> Caixa (PDV)</button>
+          <button onClick={() => setActiveTab('overview')} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 ${activeTab === 'overview' ? 'bg-theme-10 text-theme' : 'text-neutral-500 hover:text-white'}`}><LayoutDashboard size={18}/> Visão Geral</button>
+          <button onClick={() => setActiveTab('clients')} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 ${activeTab === 'clients' ? 'bg-theme-10 text-theme' : 'text-neutral-500 hover:text-white'}`}><Heart size={18}/> Clientes CRM</button>
+          <button onClick={() => setActiveTab('financial')} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 ${activeTab === 'financial' ? 'bg-theme-10 text-theme' : 'text-neutral-500 hover:text-white'}`}><DollarSign size={18}/> Financeiro</button>
+          <button onClick={() => setActiveTab('inventory')} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 ${activeTab === 'inventory' ? 'bg-theme-10 text-theme' : 'text-neutral-500 hover:text-white'}`}><Package size={18}/> Produtos</button>
+          <button onClick={() => setActiveTab('settings')} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 ${activeTab === 'settings' ? 'bg-theme-10 text-theme' : 'text-neutral-500 hover:text-white'}`}><Settings size={18}/> Configurações</button>
           <hr className="my-4 border-neutral-900" />
           <button onClick={() => setView('tv')} className="p-3 text-left text-blue-500 flex items-center gap-3 hover:bg-blue-500/5 rounded-xl transition-all"><MonitorPlay size={18}/> Painel TV</button>
           <button onClick={() => premiumFeatures?.spotify ? setView('spotify') : setActiveTab('settings')} className={`p-3 text-left flex items-center gap-3 rounded-xl transition-all ${premiumFeatures?.spotify ? 'text-[#1DB954] hover:bg-[#1DB954]/5' : 'text-neutral-600'}`}><SpotifyIcon size={18}/> Spotify Web {!premiumFeatures?.spotify && <Lock size={12}/>}</button>
@@ -1133,7 +1133,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-black font-sans antialiased" onClick={handleSecretTrigger}>
       
-      {/* INJEÇÃO DO TEMA WHITE LABEL */}
+      {/* INJEÇÃO DO TEMA WHITE LABEL - CSS CLÁSSICO E ROBUSTO */}
       <style>{`
         :root {
           --primary: ${primaryColor};
@@ -1141,6 +1141,22 @@ export default function App() {
           --primary-20: ${primaryColor}33;
           --primary-30: ${primaryColor}4D;
         }
+        
+        .text-theme { color: var(--primary) !important; }
+        .bg-theme { background-color: var(--primary) !important; }
+        .bg-theme-10 { background-color: var(--primary-10) !important; }
+        .border-theme { border-color: var(--primary) !important; }
+        .border-theme-30 { border-color: var(--primary-30) !important; }
+        .shadow-theme { box-shadow: 0 0 40px var(--primary-30) !important; }
+        
+        .hover\\:text-theme:hover { color: var(--primary) !important; }
+        .hover\\:bg-theme:hover { background-color: var(--primary) !important; }
+        .hover\\:bg-theme-10:hover { background-color: var(--primary-10) !important; }
+        .hover\\:border-theme:hover { border-color: var(--primary) !important; }
+        
+        .focus\\:border-theme:focus { border-color: var(--primary) !important; outline: none; }
+        .group:hover .group-hover\\:bg-theme { background-color: var(--primary) !important; }
+        
         ::selection { background-color: var(--primary-30); }
         @keyframes fade-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
@@ -1165,7 +1181,7 @@ export default function App() {
       {activeCall && view !== 'tv' && (
         <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center animate-fade-in p-6">
           <div className="text-center max-w-2xl">
-            <h2 className="text-2xl text-[var(--primary)] mb-4 font-light tracking-[0.3em]">PRÓXIMA CLIENTE</h2>
+            <h2 className="text-2xl text-theme mb-4 font-light tracking-[0.3em]">PRÓXIMA CLIENTE</h2>
             <h1 className="text-6xl md:text-9xl font-bold text-green-400 mb-8 animate-pulse">{activeCall.client.split(' ')[0]}</h1>
             <p className="text-xl text-neutral-400 font-light">Dirija-se ao profissional <span className="text-white font-medium">{professionals.find(p => p.id === activeCall.proId)?.name}</span></p>
             <Button onClick={() => setActiveCall(null)} variant="outline" className="mt-12 px-12">Fechar Alerta</Button>
