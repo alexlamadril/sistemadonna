@@ -1352,18 +1352,6 @@ export default function App() {
       {view === 'spotify' && <SpotifyScreen setView={setView} spotifyUrl={dbState?.spotifyUrl || ''} />}
       {view === 'iptv' && <IptvScreen setView={setView} iptvUrl={dbState?.iptvUrl || ''} />}
 
-      {/* Alerta Chamada TV para o Administrador ou Profissional */}
-      {activeCall && (view === 'admin' || view === 'pro_app') && (
-        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center animate-fade-in p-6">
-          <div className="text-center max-w-2xl">
-            <h2 className="text-2xl text-theme mb-4 font-light tracking-[0.3em]">CHAMADA ENVIADA À TV</h2>
-            <h1 className="text-6xl md:text-9xl font-bold text-green-400 mb-8 animate-pulse">{activeCall.client.split(' ')[0]}</h1>
-            <p className="text-xl text-neutral-400 font-light">Dirija-se ao profissional <span className="text-white font-medium">{professionals.find(p => p.id === activeCall.proId)?.name}</span></p>
-            <Button onClick={() => handleSetActiveCall(null)} variant="outline" className="mt-12 px-12">Fechar Alerta</Button>
-          </div>
-        </div>
-      )}
-
       {showMasterLogin && (
         <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-fade-in p-4" onClick={(e) => e.stopPropagation()}>
           <Card className="w-full max-w-sm border-blue-900/50">
