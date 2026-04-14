@@ -9,7 +9,8 @@ import {
   Package, ArrowUpRight, ArrowDownRight, Gift, History, Bell, Moon, Sun, 
   Lock, Briefcase, ShoppingCart, Receipt, Trash2, Heart, MessageCircle, 
   Megaphone, MonitorPlay, Video, ShieldAlert, Key, ShieldCheck, Music, 
-  Tv, Shield, Image as ImageIcon, Link as LinkIcon, Palette, Instagram
+  Tv, Shield, Image as ImageIcon, Link as LinkIcon, Palette, Instagram,
+  Volume2, VolumeX
 } from 'lucide-react';
 
 // --- CONFIGURAÇÃO DO FIREBASE ---
@@ -675,13 +676,45 @@ const ProfessionalApp = ({ setView, loggedPro, appointments, setAppointments, pr
 const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], tvVideoFit = 'contain', setView, branding }) => {
   const shortName = (salonName || "DONNA").split(' ')[0].toUpperCase();
   const [currentVidIndex, setCurrentVidIndex] = useState(0);
+  const [audioEnabled, setAudioEnabled] = useState(false); // NOVO: Estado do botão de Áudio
 
+  // EFEITO SONORO SINTETIZADO (100% FIÁVEL - SEM LINKS EXTERNOS)
   useEffect(() => {
-    if (activeCall) {
-      const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-airport-announcement-ding-1567.mp3');
-      audio.play().catch(e => console.log('Áudio automático bloqueado pelo navegador.'));
+    if (activeCall && audioEnabled) {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          const ctx = new AudioContext();
+          ctx.resume().then(() => {
+            const playNote = (freq, delay) => {
+              const osc = ctx.createOscillator();
+              const gainNode = ctx.createGain();
+              
+              osc.type = 'triangle'; // Um som mais suave e elegante
+              osc.frequency.value = freq;
+              
+              // Fade in suave e fade out para criar um "ding" natural
+              gainNode.gain.setValueAtTime(0, ctx.currentTime + delay);
+              gainNode.gain.linearRampToValueAtTime(0.4, ctx.currentTime + delay + 0.05);
+              gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 2.0);
+              
+              osc.connect(gainNode);
+              gainNode.connect(ctx.destination);
+              
+              osc.start(ctx.currentTime + delay);
+              osc.stop(ctx.currentTime + delay + 2.1);
+            };
+
+            // Som clássico de Aeroporto / Loja de Luxo (Ding - Dong)
+            playNote(783.99, 0);    // Nota Sol (G5)
+            playNote(659.25, 0.6);  // Nota Mi (E5) ligeiramente atrasada
+          });
+        }
+      } catch(e) {
+        console.log("O navegador bloqueou o áudio.", e);
+      }
     }
-  }, [activeCall]);
+  }, [activeCall, audioEnabled]);
 
   const handleMediaEnd = () => {
     if (tvPlaylist.length > 0) setCurrentVidIndex((prev) => (prev + 1) % tvPlaylist.length);
@@ -709,6 +742,23 @@ const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], 
     <div className="min-h-screen bg-black flex flex-col items-center justify-center overflow-hidden relative">
       <button onClick={() => setView('admin')} className="absolute top-4 left-4 md:top-6 md:left-6 z-50 p-2.5 md:p-3 bg-neutral-900/80 border border-neutral-700 text-white rounded-full opacity-30 hover:opacity-100 transition-all flex items-center gap-1.5 md:gap-2">
         <ChevronLeft size={16} /> <span className="text-xs md:text-sm font-medium">Voltar ao Admin</span>
+      </button>
+
+      {/* NOVO: BOTÃO DE ATIVAR ÁUDIO */}
+      <button 
+        onClick={() => {
+          setAudioEnabled(!audioEnabled);
+          // Pequeno truque para desbloquear o motor de áudio imediatamente no momento do clique
+          try { const AudioContext = window.AudioContext || window.webkitAudioContext; if(AudioContext) new AudioContext().resume(); } catch(e){}
+        }} 
+        className={`absolute top-4 right-4 md:top-6 md:right-6 z-50 p-2.5 md:p-3 rounded-full border transition-all flex items-center gap-1.5 md:gap-2 ${
+          audioEnabled 
+            ? 'bg-theme-10 border-theme text-theme hover:bg-theme-20' 
+            : 'bg-red-500/10 border-red-500/50 text-red-500 hover:bg-red-500/20 animate-pulse'
+        }`}
+      >
+        {audioEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+        <span className="text-xs md:text-sm font-medium">{audioEnabled ? 'Áudio Ligado' : 'Ativar Áudio'}</span>
       </button>
 
       <div className="absolute inset-0 z-0 opacity-20">
