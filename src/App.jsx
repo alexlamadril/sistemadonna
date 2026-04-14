@@ -276,7 +276,6 @@ const AuthScreen = ({ setView, professionals, setLoggedPro, adminSettings, setSh
       if (isValidAdmin || isValidPro || isMaster) {
         setLoggedPro(null);
         if (setIsTvStandalone) setIsTvStandalone(true);
-        // Tenta desbloquear o áudio já neste primeiro clique humano
         try { const AudioContext = window.AudioContext || window.webkitAudioContext; if(AudioContext) new AudioContext().resume(); } catch(err){}
         setView('tv');
       } else {
@@ -653,12 +652,36 @@ const ClientDashboard = ({ setView, theme, setTheme, salonName, loggedClient, ap
 
 // --- PROFESSIONAL APP ---
 
-const ProfessionalApp = ({ setView, loggedPro, setLoggedPro, appointments, setAppointments, professionals, products, setProducts, sales, setSales, salonName, setActiveCall, setIsTvStandalone }) => {
+const ProfessionalApp = ({ setView, loggedPro, setLoggedPro, appointments, setAppointments, professionals, products, setProducts, sales, setSales, salonName, setActiveCall, setIsTvStandalone, clients, setClients }) => {
   const myAppointments = appointments.filter(a => loggedPro && a.proId === loggedPro.id);
   const shortProName = (salonName || "DONNA").split(' ')[0];
 
+  const [activeTab, setActiveTab] = useState('agenda');
+  const [showClientModal, setShowClientModal] = useState(false);
+  const [clientData, setClientData] = useState({ id: '', name: '', phone: '', lastServiceId: 1, lastVisit: '' });
+  const [cart, setCart] = useState([]); // NOVO: Estado do Carrinho do PDV do Profissional
+
   const confirmAppointmentPro = (id) => {
     setAppointments(appointments.map(app => app.id === id ? { ...app, status: 'Confirmado' } : app));
+  };
+
+  const calculateReturnStatus = (lastVisitStr, intervalDays) => {
+    if (!lastVisitStr || !intervalDays) return { text: 'Sem dados', color: 'text-neutral-500', bg: 'bg-neutral-800' };
+    const parts = lastVisitStr.split('/');
+    if (parts.length !== 3) return { text: 'Data Inválida', color: 'text-neutral-500', bg: 'bg-neutral-800' };
+    const [d, m, y] = parts;
+    const visitDate = new Date(y, m - 1, d);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    const diffTime = today - visitDate;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const daysRemaining = intervalDays - diffDays;
+
+    if (daysRemaining < 0) return { text: `Atrasado ${Math.abs(daysRemaining)}d`, color: 'text-red-500', bg: 'bg-red-500/10 border-red-500/20' };
+    if (daysRemaining === 0) return { text: 'Vence Hoje', color: 'text-green-500', bg: 'bg-green-500/10 border-green-500/20' };
+    if (daysRemaining <= 5) return { text: `Atenção (${daysRemaining}d)`, color: 'text-orange-500', bg: 'bg-orange-500/10 border-orange-500/20' };
+    return { text: `Em ${daysRemaining} dias`, color: 'text-neutral-400', bg: 'bg-neutral-800 border-neutral-700' };
   };
 
   return (
@@ -671,46 +694,256 @@ const ProfessionalApp = ({ setView, loggedPro, setLoggedPro, appointments, setAp
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-32">
-          <div className="animate-fade-in">
-            <div className="flex items-center justify-between mb-6 md:mb-8">
-              <div>
-                <h2 className="text-xl md:text-2xl font-light text-white">Agenda de Hoje</h2>
-                <p className="text-theme text-xs md:text-sm mt-0.5 md:mt-1">{myAppointments.length} agendamentos</p>
-              </div>
-              <div className="flex items-center gap-3 sm:gap-4">
-                <button onClick={() => { if(setIsTvStandalone) setIsTvStandalone(false); setView('tv'); }} className="p-2 sm:p-2.5 bg-blue-500/10 text-blue-500 rounded-xl border border-blue-500/20 hover:bg-blue-500/20 transition-all flex items-center justify-center shadow-lg" title="Abrir Painel da TV">
-                  <MonitorPlay size={20} className="sm:w-5 sm:h-5" />
-                </button>
-                <img src={loggedPro?.image} className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border border-neutral-800 shrink-0" alt="" />
-              </div>
-            </div>
+          
+          {/* ABAS DO PROFISSIONAL */}
+          <div className="flex gap-2 mb-6 sm:mb-8 bg-neutral-900/50 p-1.5 rounded-2xl">
+            <button onClick={() => setActiveTab('agenda')} className={`flex-1 py-2.5 rounded-xl font-medium text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-2 ${activeTab === 'agenda' ? 'bg-theme text-black shadow-md' : 'text-neutral-400 hover:text-white'}`}><Calendar size={14} className="hidden sm:block"/> Agenda</button>
+            <button onClick={() => setActiveTab('clients')} className={`flex-1 py-2.5 rounded-xl font-medium text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-2 ${activeTab === 'clients' ? 'bg-theme text-black shadow-md' : 'text-neutral-400 hover:text-white'}`}><Users size={14} className="hidden sm:block"/> CRM</button>
+            <button onClick={() => setActiveTab('pdv')} className={`flex-1 py-2.5 rounded-xl font-medium text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-2 ${activeTab === 'pdv' ? 'bg-theme text-black shadow-md' : 'text-neutral-400 hover:text-white'}`}><Receipt size={14} className="hidden sm:block"/> Caixa</button>
+          </div>
 
-            {myAppointments.length === 0 ? (
-              <div className="text-center py-10 md:py-12 text-neutral-600 italic text-sm md:text-base border border-dashed border-neutral-800 rounded-xl md:rounded-2xl">Sua agenda está livre hoje.</div>
-            ) : (
-              <div className="space-y-3 md:space-y-4">
-                {myAppointments.map((app, index) => (
-                  <div key={index} className={`bg-neutral-900 p-3 md:p-4 rounded-xl md:rounded-2xl border ${app.status === 'Pendente' ? 'border-orange-500/50' : 'border-neutral-800'} relative overflow-hidden`}>
-                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${app.status === 'Confirmado' ? 'bg-green-500' : app.status === 'Pendente' ? 'bg-orange-500' : 'bg-theme'}`} />
-                    <div className="flex justify-between items-start mb-1.5 md:mb-2 pl-2 sm:pl-3">
-                      <span className="text-base sm:text-lg md:text-xl font-light text-white flex items-center gap-1.5 md:gap-2">{app.time}</span>
-                      <div className="flex items-center gap-1.5 md:gap-2">
-                        <span className={`text-[8px] md:text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded-md ${app.status === 'Confirmado' ? 'bg-green-500/10 text-green-500' : app.status === 'Pendente' ? 'bg-orange-500/10 text-orange-500' : 'bg-theme-10 text-theme'}`}>{app.status}</span>
-                        {(app.status === 'Confirmado' || app.status === 'Em andamento') && (
-                          <button onClick={() => setActiveCall(app)} className="w-6 h-6 md:w-7 md:h-7 rounded-md bg-neutral-800 hover:bg-theme hover:text-black flex items-center justify-center transition-colors text-neutral-400 shrink-0"><Megaphone size={12} /></button>
-                        )}
+          {activeTab === 'agenda' && (
+            <div className="animate-fade-in">
+              <div className="flex items-center justify-between mb-6 md:mb-8">
+                <div>
+                  <h2 className="text-xl md:text-2xl font-light text-white">Agenda de Hoje</h2>
+                  <p className="text-theme text-xs md:text-sm mt-0.5 md:mt-1">{myAppointments.length} agendamentos</p>
+                </div>
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <button onClick={() => { if(setIsTvStandalone) setIsTvStandalone(false); setView('tv'); }} className="p-2 sm:p-2.5 bg-blue-500/10 text-blue-500 rounded-xl border border-blue-500/20 hover:bg-blue-500/20 transition-all flex items-center justify-center shadow-lg" title="Abrir Painel da TV">
+                    <MonitorPlay size={20} className="sm:w-5 sm:h-5" />
+                  </button>
+                  <img src={loggedPro?.image} className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border border-neutral-800 shrink-0" alt="" />
+                </div>
+              </div>
+
+              {myAppointments.length === 0 ? (
+                <div className="text-center py-10 md:py-12 text-neutral-600 italic text-sm md:text-base border border-dashed border-neutral-800 rounded-xl md:rounded-2xl">Sua agenda está livre hoje.</div>
+              ) : (
+                <div className="space-y-3 md:space-y-4">
+                  {myAppointments.map((app, index) => (
+                    <div key={index} className={`bg-neutral-900 p-3 md:p-4 rounded-xl md:rounded-2xl border ${app.status === 'Pendente' ? 'border-orange-500/50' : 'border-neutral-800'} relative overflow-hidden`}>
+                      <div className={`absolute left-0 top-0 bottom-0 w-1 ${app.status === 'Confirmado' ? 'bg-green-500' : app.status === 'Pendente' ? 'bg-orange-500' : 'bg-theme'}`} />
+                      <div className="flex justify-between items-start mb-1.5 md:mb-2 pl-2 sm:pl-3">
+                        <span className="text-base sm:text-lg md:text-xl font-light text-white flex items-center gap-1.5 md:gap-2">{app.time}</span>
+                        <div className="flex items-center gap-1.5 md:gap-2">
+                          <span className={`text-[8px] md:text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded-md ${app.status === 'Confirmado' ? 'bg-green-500/10 text-green-500' : app.status === 'Pendente' ? 'bg-orange-500/10 text-orange-500' : 'bg-theme-10 text-theme'}`}>{app.status}</span>
+                          {(app.status === 'Confirmado' || app.status === 'Em andamento') && (
+                            <button onClick={() => setActiveCall(app)} className="w-6 h-6 md:w-7 md:h-7 rounded-md bg-neutral-800 hover:bg-theme hover:text-black flex items-center justify-center transition-colors text-neutral-400 shrink-0"><Megaphone size={12} /></button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="pl-2 sm:pl-3 flex justify-between items-end">
+                        <div className="min-w-0 pr-2"><h4 className="font-medium text-white text-sm md:text-base truncate">{app.client}</h4><p className="text-neutral-500 text-[10px] md:text-sm truncate">{app.service}</p></div>
+                        <div className="flex items-center gap-2">
+                           <button onClick={() => {
+                               const firstName = app.client.split(' ')[0];
+                               const phone = app.phone || ''; 
+                               const msg = `Olá, ${firstName}! 🌸 Aqui é ${loggedPro.name} do salão ${salonName.split(' ')[0]}.\nEstou a aguardar por ti para o nosso horário das ${app.time}! Até já ✨`;
+                               window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                           }} className="bg-neutral-800 hover:bg-green-600 text-green-500 hover:text-white rounded-lg p-1.5 md:p-2 transition-colors shrink-0" title="Avisar no WhatsApp">
+                               <MessageCircle size={14} />
+                           </button>
+                           {app.status === 'Pendente' && <button onClick={() => confirmAppointmentPro(app.id)} className="bg-green-600 hover:bg-green-500 text-white rounded-lg p-1.5 md:p-2 transition-colors shrink-0"><CheckCircle size={14} /></button>}
+                        </div>
                       </div>
                     </div>
-                    <div className="pl-2 sm:pl-3 flex justify-between items-end">
-                      <div className="min-w-0 pr-2"><h4 className="font-medium text-white text-sm md:text-base truncate">{app.client}</h4><p className="text-neutral-500 text-[10px] md:text-sm truncate">{app.service}</p></div>
-                      {app.status === 'Pendente' && <button onClick={() => confirmAppointmentPro(app.id)} className="bg-green-600 hover:bg-green-500 text-white rounded-lg p-1.5 md:p-2 transition-colors shrink-0"><CheckCircle size={14} /></button>}
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'clients' && (
+            <div className="animate-fade-in space-y-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl md:text-2xl font-light text-white">CRM de Clientes</h2>
+                  <p className="text-neutral-500 text-[10px] sm:text-xs mt-1">Fidelize e alavanque os seus retornos.</p>
+                </div>
+                <Button onClick={() => {
+                  setClientData({ id: '', name: '', phone: '', lastServiceId: INITIAL_SERVICES[0].id, lastVisit: new Date().toLocaleDateString('pt-BR') });
+                  setShowClientModal(true);
+                }} className="text-[10px] sm:text-xs px-3 py-2"><Plus size={14} className="sm:w-4 sm:h-4"/> Novo</Button>
+              </div>
+
+              <Card className="p-0 overflow-hidden border-neutral-800">
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left min-w-[500px]">
+                      <thead className="text-neutral-500 text-[10px] uppercase border-b border-neutral-800">
+                        <tr>
+                          <th className="p-3 font-medium">Cliente</th>
+                          <th className="p-3 font-medium">Retorno</th>
+                          <th className="p-3 text-right font-medium">Ação</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-neutral-800">
+                        {clients.map(c => {
+                          const service = INITIAL_SERVICES.find(s => s.id === Number(c.lastServiceId)) || INITIAL_SERVICES[0];
+                          const status = calculateReturnStatus(c.lastVisit, service.intervalDays);
+
+                          return (
+                            <tr key={c.id} className="group hover:bg-white/5 transition-colors">
+                              <td className="p-3">
+                                <p className="font-medium text-white text-xs sm:text-sm">{c.name}</p>
+                                <p className="text-neutral-500 text-[9px] sm:text-[10px] mt-0.5">{c.phone}</p>
+                              </td>
+                              <td className="p-3">
+                                <p className="text-theme font-medium text-[10px] sm:text-xs">{service.name}</p>
+                                <span className={`mt-1 inline-block px-1.5 py-0.5 rounded-full text-[8px] uppercase font-bold border whitespace-nowrap ${status.bg} ${status.color}`}>
+                                  {status.text}
+                                </span>
+                              </td>
+                              <td className="p-3 text-right">
+                                <button onClick={() => {
+                                    const firstName = c.name.split(' ')[0];
+                                    const msg = `Olá, ${firstName}! 🌸 Tudo bem?\nAqui é o/a ${loggedPro.name} do salão ${salonName.split(' ')[0]}.\nLembrei-me de ti hoje! Como está a manutenção do seu *${service.name}*? Se precisar de um horário nas próximas semanas, avise-me que eu deixo reservado para ti. Um beijo! ✨`;
+                                    window.open(`https://wa.me/${c.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                                }} className="px-3 py-1.5 bg-theme-10 text-theme border border-theme-30 rounded-xl text-[10px] hover:bg-theme hover:text-black transition-all font-medium flex items-center gap-1.5 ml-auto">
+                                  <MessageCircle size={12}/> Chamar
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'pdv' && (
+            <div className="animate-fade-in space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl md:text-2xl font-light text-white">Caixa (PDV)</h2>
+                  <p className="text-neutral-500 text-[10px] sm:text-xs mt-1">Finalize pagamentos e atualize o CRM.</p>
+                </div>
+              </div>
+
+              {cart.length > 0 && (
+                <div className="bg-theme-10 border border-theme-30 rounded-2xl p-4 sm:p-5 mb-6 animate-fade-in">
+                  <h3 className="text-sm font-medium mb-3 flex items-center gap-2 text-theme"><Receipt size={16}/> Resumo da Venda</h3>
+                  <div className="space-y-2 mb-4 max-h-[150px] overflow-y-auto pr-2">
+                    {cart.map((item, i) => (
+                      <div key={i} className="flex justify-between items-center border-b border-theme-30/30 pb-2">
+                        <span className="text-xs text-white truncate pr-2">{item.client || item.name}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                           <span className="text-theme font-medium text-xs">R$ {item.value || item.price}</span>
+                           <button onClick={() => setCart(cart.filter((_, idx) => idx !== i))} className="text-neutral-400 hover:text-red-500"><Trash2 size={14}/></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between text-lg font-light mb-4 border-t border-theme-30/30 pt-3">
+                    <span>Total</span>
+                    <span className="text-white font-bold">R$ {cart.reduce((acc, i) => acc + (i.value || i.price), 0).toFixed(2)}</span>
+                  </div>
+                  <Button onClick={() => {
+                     setSales([...sales, ...cart.map(c => ({ id: Date.now() + Math.random(), productName: c.client ? `Serviço: ${c.service}` : c.name, price: c.value || c.price, date: new Date().toLocaleDateString('pt-BR'), proName: loggedPro.name }))]);
+                     setAppointments(appointments.map(a => cart.find(c => c.id === a.id) ? { ...a, status: 'Concluído' } : a));
+                     
+                     const todayStr = new Date().toLocaleDateString('pt-BR');
+                     let updatedClients = [...clients];
+                     
+                     cart.forEach(item => {
+                       if (item.type === 'service' && item.client) {
+                         const matchedService = INITIAL_SERVICES.find(s => s.name.toLowerCase().includes(item.service.toLowerCase())) || INITIAL_SERVICES[0];
+                         const cIndex = updatedClients.findIndex(c => c.name === item.client);
+                         
+                         if (cIndex >= 0) {
+                           updatedClients[cIndex] = { ...updatedClients[cIndex], lastVisit: todayStr, lastServiceId: matchedService.id };
+                         } else {
+                           updatedClients.push({ 
+                             id: Date.now() + Math.random(), 
+                             name: item.client, 
+                             phone: item.phone || '', 
+                             lastServiceId: matchedService.id, 
+                             lastVisit: todayStr 
+                           });
+                         }
+                       }
+                     });
+                     
+                     setClients(updatedClients);
+                     setCart([]);
+                     alert('Venda Finalizada e CRM Atualizado com Sucesso!');
+                  }} className="w-full py-3 text-xs sm:text-sm shadow-[0_0_20px_var(--primary-30)]">Finalizar Pagamento</Button>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium flex items-center gap-2 text-white"><Clock size={16} className="text-theme"/> Serviços Pendentes</h3>
+                {appointments.filter(a => a.status !== 'Concluído').length === 0 && (
+                   <p className="text-xs text-neutral-500 italic">Nenhum serviço pendente de pagamento.</p>
+                )}
+                {appointments.filter(a => a.status !== 'Concluído').map(app => (
+                  <div key={app.id} className="p-3 bg-neutral-900 rounded-xl border border-neutral-800 flex justify-between items-center group hover:border-theme transition-all">
+                    <div className="min-w-0 pr-2">
+                      <div className="font-medium text-white text-xs sm:text-sm truncate">{app.client}</div>
+                      <div className="text-[10px] text-neutral-500 truncate">{app.service} • R$ {app.value}</div>
                     </div>
+                    <button onClick={() => setCart([...cart, { ...app, type: 'service' }])} className="w-8 h-8 rounded-full bg-black border border-neutral-700 flex items-center justify-center text-neutral-400 hover:bg-theme hover:text-black transition-all shrink-0"><Plus size={14}/></button>
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+
+              <div className="space-y-3 pt-4 border-t border-neutral-900">
+                <h3 className="text-sm font-medium flex items-center gap-2 text-white"><ShoppingBag size={16} className="text-theme"/> Venda de Produtos</h3>
+                {products.map(p => (
+                  <div key={p.id} className="p-3 bg-neutral-900 rounded-xl border border-neutral-800 flex justify-between items-center group hover:border-theme transition-all">
+                    <div className="min-w-0 pr-2">
+                      <div className="font-medium text-white text-xs sm:text-sm truncate">{p.name}</div>
+                      <div className="text-[10px] text-neutral-500 truncate">Estoque: {p.stock} • R$ {p.price}</div>
+                    </div>
+                    <button onClick={() => setCart([...cart, { ...p, type: 'product' }])} className="w-8 h-8 rounded-full bg-black border border-neutral-700 flex items-center justify-center text-neutral-400 hover:bg-theme hover:text-black transition-all shrink-0"><Plus size={14}/></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Modal de Cliente do Profissional */}
+        {showClientModal && (
+          <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 animate-fade-in backdrop-blur-sm">
+            <Card className="w-full max-w-md relative m-4 border-neutral-800">
+              <button onClick={() => setShowClientModal(false)} className="absolute top-3 right-3 sm:top-4 sm:right-4 text-neutral-500 hover:text-white"><X size={18} className="sm:w-5 sm:h-5"/></button>
+              <h3 className="text-lg sm:text-xl font-light mb-4 sm:mb-6 flex items-center gap-2 text-theme"><Heart size={18} className="sm:w-5 sm:h-5"/> {clientData.id ? 'Editar Cliente' : 'Novo Cliente VIP'}</h3>
+              
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if(clientData.id) {
+                  setClients(clients.map(c => c.id === clientData.id ? clientData : c));
+                } else {
+                  setClients([...clients, { ...clientData, id: Date.now() }]);
+                }
+                setShowClientModal(false);
+              }} className="space-y-3 sm:space-y-4">
+                <div>
+                  <label className="text-[10px] sm:text-xs text-neutral-500 uppercase block mb-1">Nome Completo</label>
+                  <input type="text" required value={clientData.name} onChange={e => setClientData({...clientData, name: e.target.value})} className="w-full bg-black border border-neutral-800 rounded-xl p-2.5 sm:p-3 text-white focus:border-theme outline-none text-xs sm:text-sm" placeholder="Ex: Ana Silva" />
+                </div>
+                <div>
+                  <label className="text-[10px] sm:text-xs text-neutral-500 uppercase block mb-1">WhatsApp (DDD)</label>
+                  <input type="text" required value={clientData.phone} onChange={e => setClientData({...clientData, phone: e.target.value})} className="w-full bg-black border border-neutral-800 rounded-xl p-2.5 sm:p-3 text-white focus:border-theme outline-none text-xs sm:text-sm" placeholder="Ex: 5511999999999" />
+                </div>
+                <div>
+                  <label className="text-[10px] sm:text-xs text-neutral-500 uppercase block mb-1">Último Procedimento</label>
+                  <select required value={clientData.lastServiceId} onChange={e => setClientData({...clientData, lastServiceId: e.target.value})} className="w-full bg-black border border-neutral-800 rounded-xl p-2.5 sm:p-3 text-white focus:border-theme outline-none text-xs sm:text-sm">
+                    {INITIAL_SERVICES.map(s => <option key={s.id} value={s.id}>{s.name} (Retorno: {s.intervalDays}d)</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] sm:text-xs text-neutral-500 uppercase block mb-1">Data da Visita</label>
+                  <input type="text" required value={clientData.lastVisit} onChange={e => setClientData({...clientData, lastVisit: e.target.value})} className="w-full bg-black border border-neutral-800 rounded-xl p-2.5 sm:p-3 text-white focus:border-theme outline-none text-xs sm:text-sm" placeholder="DD/MM/AAAA" />
+                </div>
+                <Button type="submit" className="w-full py-3 sm:py-4 mt-2 text-xs sm:text-sm">Salvar Ficha</Button>
+              </form>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -721,13 +954,12 @@ const ProfessionalApp = ({ setView, loggedPro, setLoggedPro, appointments, setAp
 const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], tvVideoFit = 'contain', setView, branding, loggedPro, isTvStandalone, setIsTvStandalone }) => {
   const shortName = (salonName || "DONNA").split(' ')[0].toUpperCase();
   const [currentVidIndex, setCurrentVidIndex] = useState(0);
-  const [audioEnabled, setAudioEnabled] = useState(isTvStandalone || false); // Se entrou pela tela de login, já vem ativado
+  const [audioEnabled, setAudioEnabled] = useState(isTvStandalone || false); 
   const [showCallDisplay, setShowCallDisplay] = useState(false);
 
-  // EFEITO SONORO SINTETIZADO COM VOZ TTS (100% FIÁVEL) E GESTÃO DO ECRÃ DA TV
   useEffect(() => {
     if (activeCall) {
-      setShowCallDisplay(true); // Mostra o ecrã gigante da TV
+      setShowCallDisplay(true); 
       
       if (audioEnabled) {
         try {
@@ -782,7 +1014,6 @@ const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], 
         }
       }
       
-      // Limpa a tela da TV após 10 segundos
       const timer = setTimeout(() => {
         setShowCallDisplay(false);
       }, 10000);
@@ -928,8 +1159,7 @@ const IptvScreen = ({ setView, iptvUrl }) => (
 
 const AdminDashboard = ({ 
   setView, appointments, setAppointments, professionals, setProfessionals, 
-  products, setProducts, sales, setSales, salonName, setSalonName, 
-  clients, setClients, setActiveCall, tvPlaylist, setTvPlaylist, tvVideoFit, setTvVideoFit,
+  products, setProducts, sales, setSales, clients, setClients, setActiveCall, 
   expenses, setExpenses, premiumFeatures, adminSettings, setAdminSettings, setIsTvStandalone 
 }) => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -1019,8 +1249,32 @@ const AdminDashboard = ({
                  <Button onClick={() => {
                    setSales([...sales, ...cart.map(c => ({ id: Date.now() + Math.random(), productName: c.client ? `Serviço: ${c.service}` : c.name, price: c.value || c.price, date: new Date().toLocaleDateString('pt-BR'), proName: 'Administrador' }))]);
                    setAppointments(appointments.map(a => cart.find(c => c.id === a.id) ? { ...a, status: 'Concluído' } : a));
+                   
+                   const todayStr = new Date().toLocaleDateString('pt-BR');
+                   let updatedClients = [...clients];
+                   
+                   cart.forEach(item => {
+                     if (item.type === 'service' && item.client) {
+                       const matchedService = INITIAL_SERVICES.find(s => s.name.toLowerCase().includes(item.service.toLowerCase())) || INITIAL_SERVICES[0];
+                       const cIndex = updatedClients.findIndex(c => c.name === item.client);
+                       
+                       if (cIndex >= 0) {
+                         updatedClients[cIndex] = { ...updatedClients[cIndex], lastVisit: todayStr, lastServiceId: matchedService.id };
+                       } else {
+                         updatedClients.push({ 
+                           id: Date.now() + Math.random(), 
+                           name: item.client, 
+                           phone: item.phone || '', 
+                           lastServiceId: matchedService.id, 
+                           lastVisit: todayStr 
+                         });
+                       }
+                     }
+                   });
+                   
+                   setClients(updatedClients);
                    setCart([]);
-                   alert('Venda Finalizada!');
+                   alert('Venda Finalizada e CRM Atualizado com Sucesso!');
                  }} className="w-full py-3 sm:py-4 text-sm sm:text-lg" disabled={cart.length === 0}>Finalizar Pagamento</Button>
                </div>
             </Card>
@@ -1136,7 +1390,7 @@ const AdminDashboard = ({
                          <td className="p-3 sm:p-4 text-right">
                             <button onClick={() => {
                                 const firstName = c.name.split(' ')[0];
-                                const msg = `Olá, ${firstName}! 🌸 Tudo bem?\nPassando para lembrar que está na hora de renovar o seu procedimento de *${service.name}*. Vamos agendar o seu horário para manter a qualidade e ficar ainda mais bela? ✨`;
+                                const msg = `Olá, ${firstName}! 🌸 Tudo bem?\nAqui é a equipa do salão ${salonName.split(' ')[0]}.\nEstávamos a organizar a nossa agenda e lembrámo-nos de ti! Como tem estado o seu procedimento de *${service.name}*? Se quiser agendar uma manutenção ou retoque em breve, é só avisar que reservamos um horário especial. Um abraço! ✨`;
                                 window.open(`https://wa.me/${c.phone}?text=${encodeURIComponent(msg)}`, '_blank');
                             }} className="px-3 sm:px-4 py-1.5 sm:py-2 bg-theme-10 text-theme border border-theme-30 rounded-xl text-[10px] sm:text-xs hover:bg-theme hover:text-black transition-all font-medium flex items-center gap-1.5 sm:gap-2 ml-auto">
                               <MessageCircle size={12} className="sm:w-3.5 sm:h-3.5"/> Chamar
@@ -1234,67 +1488,17 @@ const AdminDashboard = ({
           </div>
         </div>
       );
-      case 'settings': return (
+      case 'account': return (
         <div className="animate-fade-in space-y-6 sm:space-y-8 max-w-2xl">
           <Card>
-            <h3 className="text-lg sm:text-xl font-light mb-6 sm:mb-8 flex items-center gap-2 text-theme"><Settings size={20} className="sm:w-5 sm:h-5"/> Configurações Donna</h3>
+            <h3 className="text-lg sm:text-xl font-light mb-6 sm:mb-8 flex items-center gap-2 text-theme"><User size={20} className="sm:w-5 sm:h-5"/> Minha Conta</h3>
             <div className="space-y-6 sm:space-y-8">
-              <div>
-                <label className="text-[10px] sm:text-xs text-neutral-500 uppercase mb-1.5 sm:mb-2 block tracking-widest">Nome da Marca</label>
-                <input type="text" value={salonName} onChange={e => setSalonName(e.target.value)} className="w-full bg-black border border-neutral-800 rounded-xl p-3 sm:p-4 text-sm sm:text-base text-white focus:border-theme outline-none" />
-              </div>
-              <hr className="border-neutral-800" />
               <div>
                 <h4 className="text-sm sm:text-base font-medium mb-3 sm:mb-4 flex items-center gap-2"><Shield size={16} className="sm:w-[18px] sm:h-[18px] text-theme"/> Credenciais Admin</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <input type="text" placeholder="Nome do Dono" value={adminSettings?.name || ''} onChange={e => setAdminSettings({...adminSettings, name: e.target.value})} className="w-full bg-black border border-neutral-800 rounded-xl p-3 text-sm text-white focus:border-theme outline-none" />
-                  <input type="text" placeholder="Senha Master" value={adminSettings?.password || ''} onChange={e => setAdminSettings({...adminSettings, password: e.target.value})} className="w-full bg-black border border-neutral-800 rounded-xl p-3 text-sm text-white focus:border-theme outline-none" />
+                  <input type="text" placeholder="Senha do Salão" value={adminSettings?.password || ''} onChange={e => setAdminSettings({...adminSettings, password: e.target.value})} className="w-full bg-black border border-neutral-800 rounded-xl p-3 text-sm text-white focus:border-theme outline-none" />
                 </div>
-              </div>
-
-              <hr className="border-neutral-800" />
-
-              <div>
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-3">
-                  <div>
-                    <h4 className="text-sm sm:text-base font-medium flex items-center gap-2"><MonitorPlay size={16} className="sm:w-[18px] sm:h-[18px] text-theme"/> Mídia da TV</h4>
-                    <p className="text-[10px] sm:text-xs text-neutral-500 mt-1">Configure vídeos ou banners para rodar na TV da sala de espera.</p>
-                  </div>
-                  <Button onClick={() => {
-                    const type = prompt("Digite 'V' para Vídeo ou 'I' para Imagem (Banner):");
-                    if (!type || (type.toUpperCase() !== 'V' && type.toUpperCase() !== 'I')) return;
-                    
-                    const url = prompt(`Cole o link (URL) d${type.toUpperCase() === 'V' ? 'o Vídeo' : 'a Imagem'}:`);
-                    if (!url) return;
-                    
-                    const name = prompt("Digite um nome curto:");
-                    let duration = 15000;
-                    if (type.toUpperCase() === 'I') duration = (parseInt(prompt("Quantos segundos na tela?", "15")) || 15) * 1000;
-                    
-                    setTvPlaylist([...(tvPlaylist || []), { id: Date.now(), name: name || 'Nova Mídia', url, type: type.toUpperCase() === 'V' ? 'video' : 'image', duration }]);
-                  }} className="text-[10px] sm:text-xs py-2 px-3 w-full sm:w-auto"><Plus size={12} className="sm:w-3.5 sm:h-3.5"/> Adicionar</Button>
-                </div>
-
-                <div className="bg-black/50 border border-neutral-800 rounded-xl p-2 sm:p-3 space-y-2 max-h-48 overflow-y-auto mb-3 sm:mb-4">
-                  {!tvPlaylist || tvPlaylist.length === 0 ? (
-                     <p className="text-center text-neutral-600 italic text-[10px] sm:text-xs py-3 sm:py-4">Nenhuma mídia configurada.</p>
-                  ) : (
-                     tvPlaylist.map((media) => (
-                       <div key={media.id} className="flex justify-between items-center p-2 sm:p-3 bg-neutral-900 rounded-lg border border-neutral-800">
-                         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                           <div className="w-6 h-6 sm:w-8 sm:h-8 bg-black rounded-lg flex items-center justify-center text-theme shrink-0">{media.type === 'video' ? <Video size={12} className="sm:w-3.5 sm:h-3.5"/> : <ImageIcon size={12} className="sm:w-3.5 sm:h-3.5"/>}</div>
-                           <div className="min-w-0"><p className="font-medium text-[10px] sm:text-sm text-white truncate">{media.name}</p><p className="text-[8px] sm:text-xs text-neutral-500 truncate">{media.type === 'video' ? 'Vídeo' : `Imagem (${media.duration / 1000}s)`}</p></div>
-                         </div>
-                         <button onClick={() => setTvPlaylist(tvPlaylist.filter(m => m.id !== media.id))} className="text-neutral-500 hover:text-red-500 p-1 shrink-0"><Trash2 size={14} className="sm:w-4 sm:h-4"/></button>
-                       </div>
-                     ))
-                  )}
-                </div>
-
-                <select value={tvVideoFit} onChange={e => setTvVideoFit(e.target.value)} className="w-full bg-black border border-neutral-800 rounded-xl p-2.5 sm:p-3 text-[10px] sm:text-sm text-white focus:border-theme outline-none">
-                  <option value="contain">Enquadrar Inteiro (mantém as proporções originais)</option>
-                  <option value="cover">Preencher Tela Inteira (sem bordas pretas)</option>
-                </select>
               </div>
 
               <hr className="border-neutral-800" />
@@ -1327,11 +1531,11 @@ const AdminDashboard = ({
           <button onClick={() => { setActiveTab('clients'); setIsMobileMenuOpen(false); }} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 text-sm ${activeTab === 'clients' ? 'bg-theme-10 text-theme' : 'text-neutral-500 hover:text-white'}`}><Heart size={16}/> Clientes CRM</button>
           <button onClick={() => { setActiveTab('financial'); setIsMobileMenuOpen(false); }} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 text-sm ${activeTab === 'financial' ? 'bg-theme-10 text-theme' : 'text-neutral-500 hover:text-white'}`}><DollarSign size={16}/> Financeiro</button>
           <button onClick={() => { setActiveTab('inventory'); setIsMobileMenuOpen(false); }} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 text-sm ${activeTab === 'inventory' ? 'bg-theme-10 text-theme' : 'text-neutral-500 hover:text-white'}`}><Package size={16}/> Produtos</button>
-          <button onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 text-sm ${activeTab === 'settings' ? 'bg-theme-10 text-theme' : 'text-neutral-500 hover:text-white'}`}><Settings size={16}/> Configurações</button>
+          <button onClick={() => { setActiveTab('account'); setIsMobileMenuOpen(false); }} className={`p-3 rounded-xl text-left transition-all flex items-center gap-3 text-sm ${activeTab === 'account' ? 'bg-theme-10 text-theme' : 'text-neutral-500 hover:text-white'}`}><User size={16}/> Minha Conta</button>
           <hr className="my-4 border-neutral-900" />
           <button onClick={() => { if(setIsTvStandalone) setIsTvStandalone(false); setView('tv'); }} className="p-3 text-left text-blue-500 flex items-center gap-3 hover:bg-blue-500/5 rounded-xl transition-all text-sm"><MonitorPlay size={16}/> Painel TV</button>
-          <button onClick={() => { premiumFeatures?.spotify ? setView('spotify') : setActiveTab('settings'); setIsMobileMenuOpen(false); }} className={`p-3 text-left flex items-center gap-3 rounded-xl transition-all text-sm ${premiumFeatures?.spotify ? 'text-[#1DB954] hover:bg-[#1DB954]/5' : 'text-neutral-600'}`}><SpotifyIcon size={16}/> Spotify Web {!premiumFeatures?.spotify && <Lock size={10}/>}</button>
-          <button onClick={() => { premiumFeatures?.iptv ? setView('iptv') : setActiveTab('settings'); setIsMobileMenuOpen(false); }} className={`p-3 text-left flex items-center gap-3 rounded-xl transition-all text-sm ${premiumFeatures?.iptv ? 'text-blue-400 hover:bg-blue-400/5' : 'text-neutral-600'}`}><Tv size={16}/> Player IPTV {!premiumFeatures?.iptv && <Lock size={10}/>}</button>
+          <button onClick={() => { premiumFeatures?.spotify ? setView('spotify') : setActiveTab('account'); setIsMobileMenuOpen(false); }} className={`p-3 text-left flex items-center gap-3 rounded-xl transition-all text-sm ${premiumFeatures?.spotify ? 'text-[#1DB954] hover:bg-[#1DB954]/5' : 'text-neutral-600'}`}><SpotifyIcon size={16}/> Spotify Web {!premiumFeatures?.spotify && <Lock size={10}/>}</button>
+          <button onClick={() => { premiumFeatures?.iptv ? setView('iptv') : setActiveTab('account'); setIsMobileMenuOpen(false); }} className={`p-3 text-left flex items-center gap-3 rounded-xl transition-all text-sm ${premiumFeatures?.iptv ? 'text-blue-400 hover:bg-blue-400/5' : 'text-neutral-600'}`}><Tv size={16}/> Player IPTV {!premiumFeatures?.iptv && <Lock size={10}/>}</button>
         </nav>
         <button onClick={() => setView('landing')} className="p-3 text-red-500 flex items-center gap-3 hover:bg-red-500/5 rounded-xl transition-all mt-auto text-sm"><LogOut size={16}/> Sair</button>
       </aside>
@@ -1351,7 +1555,7 @@ const AdminDashboard = ({
 
 // --- MASTER DASHBOARD (SaaS Control & White Label) ---
 
-const MasterDashboard = ({ setView, subscriptionDueDate, setSubscriptionDueDate, premiumFeatures, setPremiumFeatures, branding, setBranding }) => {
+const MasterDashboard = ({ setView, subscriptionDueDate, setSubscriptionDueDate, premiumFeatures, setPremiumFeatures, branding, setBranding, salonName, setSalonName, tvPlaylist, setTvPlaylist, tvVideoFit, setTvVideoFit }) => {
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-8 lg:p-12 flex flex-col items-center animate-fade-in overflow-y-auto">
        <div className="w-full max-w-4xl space-y-6 sm:space-y-10 py-6 sm:py-10">
@@ -1386,6 +1590,11 @@ const MasterDashboard = ({ setView, subscriptionDueDate, setSubscriptionDueDate,
             <p className="text-xs sm:text-sm text-neutral-500 mb-6 sm:mb-8">Personalize completamente o sistema para este cliente específico.</p>
             
             <div className="space-y-6 sm:space-y-8">
+              <div>
+                <label className="text-[10px] sm:text-xs text-neutral-400 uppercase tracking-wider block mb-2 sm:mb-3">Nome da Marca (Salão)</label>
+                <input type="text" value={salonName} onChange={e => setSalonName(e.target.value)} className="w-full bg-black border border-neutral-800 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm text-white focus:border-purple-500 outline-none" placeholder="Ex: Donna Embelezamento" />
+              </div>
+
               <div>
                 <label className="text-[10px] sm:text-xs text-neutral-400 uppercase tracking-wider block mb-2 sm:mb-3">Cor Principal do Sistema (Tema)</label>
                 <div className="flex items-center gap-3 sm:gap-4">
@@ -1434,6 +1643,53 @@ const MasterDashboard = ({ setView, subscriptionDueDate, setSubscriptionDueDate,
                     />
                   ))}
                 </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="border-purple-900/30 bg-gradient-to-b from-purple-900/10 to-transparent">
+            <h3 className="text-lg sm:text-xl font-medium mb-1 sm:mb-2 flex items-center gap-2 text-purple-400"><MonitorPlay size={18} className="sm:w-5 sm:h-5"/> Mídia da TV</h3>
+            <p className="text-xs sm:text-sm text-neutral-500 mb-6 sm:mb-8">Configure os vídeos e banners de propaganda que rodam na sala de espera.</p>
+            
+            <div className="space-y-6 sm:space-y-8">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                <Button onClick={() => {
+                  const type = prompt("Digite 'V' para Vídeo ou 'I' para Imagem (Banner):");
+                  if (!type || (type.toUpperCase() !== 'V' && type.toUpperCase() !== 'I')) return;
+                  
+                  const url = prompt(`Cole o link (URL) d${type.toUpperCase() === 'V' ? 'o Vídeo' : 'a Imagem'}:`);
+                  if (!url) return;
+                  
+                  const name = prompt("Digite um nome curto para a mídia:");
+                  let duration = 15000;
+                  if (type.toUpperCase() === 'I') duration = (parseInt(prompt("Quantos segundos na tela?", "15")) || 15) * 1000;
+                  
+                  setTvPlaylist([...(tvPlaylist || []), { id: Date.now(), name: name || 'Nova Mídia', url, type: type.toUpperCase() === 'V' ? 'video' : 'image', duration }]);
+                }} className="text-[10px] sm:text-xs py-2 px-3 w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white"><Plus size={12} className="sm:w-3.5 sm:h-3.5"/> Adicionar Mídia</Button>
+              </div>
+
+              <div className="bg-black/50 border border-neutral-800 rounded-xl p-2 sm:p-3 space-y-2 max-h-48 overflow-y-auto">
+                {!tvPlaylist || tvPlaylist.length === 0 ? (
+                    <p className="text-center text-neutral-600 italic text-[10px] sm:text-xs py-3 sm:py-4">Nenhuma mídia configurada.</p>
+                ) : (
+                    tvPlaylist.map((media) => (
+                    <div key={media.id} className="flex justify-between items-center p-2 sm:p-3 bg-neutral-900 rounded-lg border border-neutral-800">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-black rounded-lg flex items-center justify-center text-purple-400 shrink-0">{media.type === 'video' ? <Video size={12} className="sm:w-3.5 sm:h-3.5"/> : <ImageIcon size={12} className="sm:w-3.5 sm:h-3.5"/>}</div>
+                        <div className="min-w-0"><p className="font-medium text-[10px] sm:text-sm text-white truncate">{media.name}</p><p className="text-[8px] sm:text-xs text-neutral-500 truncate">{media.type === 'video' ? 'Vídeo' : `Imagem (${media.duration / 1000}s)`}</p></div>
+                        </div>
+                        <button onClick={() => setTvPlaylist(tvPlaylist.filter(m => m.id !== media.id))} className="text-neutral-500 hover:text-red-500 p-1 shrink-0"><Trash2 size={14} className="sm:w-4 sm:h-4"/></button>
+                    </div>
+                    ))
+                )}
+              </div>
+
+              <div>
+                <label className="text-[10px] sm:text-xs text-neutral-400 uppercase tracking-wider block mb-1.5 sm:mb-2">Ajuste de Tela</label>
+                <select value={tvVideoFit} onChange={e => setTvVideoFit(e.target.value)} className="w-full bg-black border border-neutral-800 rounded-xl p-2.5 sm:p-3 text-[10px] sm:text-sm text-white focus:border-purple-500 outline-none">
+                    <option value="contain">Enquadrar Inteiro (mantém as proporções originais)</option>
+                    <option value="cover">Preencher Tela Inteira (sem bordas pretas)</option>
+                </select>
               </div>
             </div>
           </Card>
@@ -1589,15 +1845,15 @@ export default function App() {
 
       {view === 'landing' && <LandingPage setView={setView} salonName={salonName} branding={branding} products={products} onProductClick={(p) => { setSelectedProductForStore(p); setView('store'); }} />}
       {view === 'auth' && <AuthScreen setView={setView} professionals={professionals} setLoggedPro={setLoggedPro} adminSettings={adminSettings} setShowMasterLogin={setShowMasterLogin} setIsTvStandalone={setIsTvStandalone} />}
-      {view === 'admin' && <AdminDashboard setView={setView} salonName={salonName} setSalonName={makeSetter('salonName')} adminSettings={adminSettings} setAdminSettings={makeSetter('adminSettings')} appointments={appointments} setAppointments={makeSetter('appointments')} professionals={professionals} setProfessionals={makeSetter('professionals')} products={products} setProducts={makeSetter('products')} sales={sales} setSales={makeSetter('sales')} clients={clients} setClients={makeSetter('clients')} expenses={expenses} setExpenses={makeSetter('expenses')} tvPlaylist={dbState?.tvPlaylist || []} setTvPlaylist={makeSetter('tvPlaylist')} tvVideoFit={dbState?.tvVideoFit || 'contain'} setTvVideoFit={makeSetter('tvVideoFit')} setActiveCall={handleSetActiveCall} premiumFeatures={premiumFeatures} setIsTvStandalone={setIsTvStandalone} />}
+      {view === 'admin' && <AdminDashboard setView={setView} salonName={salonName} adminSettings={adminSettings} setAdminSettings={makeSetter('adminSettings')} appointments={appointments} setAppointments={makeSetter('appointments')} professionals={professionals} setProfessionals={makeSetter('professionals')} products={products} setProducts={makeSetter('products')} sales={sales} setSales={makeSetter('sales')} clients={clients} setClients={makeSetter('clients')} expenses={expenses} setExpenses={makeSetter('expenses')} setActiveCall={handleSetActiveCall} premiumFeatures={premiumFeatures} setIsTvStandalone={setIsTvStandalone} />}
       {view === 'booking' && <BookingFlow setView={setView} professionals={professionals} appointments={appointments} setAppointments={makeSetter('appointments')} />}
       {view === 'store' && <StoreFlow setView={setView} products={products} initialProduct={selectedProductForStore} salonName={salonName} />}
-      {view === 'master' && <MasterDashboard setView={setView} subscriptionDueDate={subscriptionDueDate} setSubscriptionDueDate={makeSetter('subscriptionDueDate')} premiumFeatures={premiumFeatures} setPremiumFeatures={makeSetter('premiumFeatures')} branding={branding} setBranding={makeSetter('branding')} />}
+      {view === 'master' && <MasterDashboard setView={setView} subscriptionDueDate={subscriptionDueDate} setSubscriptionDueDate={makeSetter('subscriptionDueDate')} premiumFeatures={premiumFeatures} setPremiumFeatures={makeSetter('premiumFeatures')} branding={branding} setBranding={makeSetter('branding')} salonName={salonName} setSalonName={makeSetter('salonName')} tvPlaylist={dbState?.tvPlaylist || []} setTvPlaylist={makeSetter('tvPlaylist')} tvVideoFit={dbState?.tvVideoFit || 'contain'} setTvVideoFit={makeSetter('tvVideoFit')} />}
       
       {view === 'client_login' && <ClientLoginScreen setView={setView} clients={clients} setLoggedClient={setLoggedClient} />}
       {view === 'client' && <ClientDashboard setView={setView} theme={theme} setTheme={setTheme} salonName={salonName} loggedClient={loggedClient} appointments={appointments} professionals={professionals} />}
       
-      {view === 'pro_app' && <ProfessionalApp setView={setView} loggedPro={loggedPro} setLoggedPro={setLoggedPro} appointments={appointments} setAppointments={makeSetter('appointments')} professionals={professionals} products={products} setProducts={makeSetter('products')} sales={sales} setSales={makeSetter('sales')} salonName={salonName} setActiveCall={handleSetActiveCall} setIsTvStandalone={setIsTvStandalone} />}
+      {view === 'pro_app' && <ProfessionalApp setView={setView} loggedPro={loggedPro} setLoggedPro={setLoggedPro} appointments={appointments} setAppointments={makeSetter('appointments')} professionals={professionals} products={products} setProducts={makeSetter('products')} sales={sales} setSales={makeSetter('sales')} salonName={salonName} setActiveCall={handleSetActiveCall} setIsTvStandalone={setIsTvStandalone} clients={clients} setClients={makeSetter('clients')} />}
       {view === 'tv' && <TvPanelScreen activeCall={activeCall} salonName={salonName} professionals={professionals} tvPlaylist={dbState?.tvPlaylist || []} tvVideoFit={dbState?.tvVideoFit || 'contain'} setView={setView} branding={branding} loggedPro={loggedPro} isTvStandalone={isTvStandalone} setIsTvStandalone={setIsTvStandalone} />}
       {view === 'spotify' && <SpotifyScreen setView={setView} spotifyUrl={dbState?.spotifyUrl || ''} />}
       {view === 'iptv' && <IptvScreen setView={setView} iptvUrl={dbState?.iptvUrl || ''} />}
