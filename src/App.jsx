@@ -1197,7 +1197,6 @@ const MasterDashboard = ({ setView, subscriptionDueDate, setSubscriptionDueDate,
 
 export default function App() {
   const [view, setView] = useState('landing');
-  const [activeCall, setActiveCall] = useState(null);
   const [loggedPro, setLoggedPro] = useState(null);
   const [loggedClient, setLoggedClient] = useState(null);
   const [selectedProductForStore, setSelectedProductForStore] = useState(null);
@@ -1258,7 +1257,8 @@ export default function App() {
           },
           appointments: MOCK_APPOINTMENTS, professionals: INITIAL_PROFESSIONALS, products: INITIAL_PRODUCTS,
           clients: MOCK_CLIENTS, sales: [], expenses: [], premiumFeatures: { spotify: true, iptv: false },
-          subscriptionDueDate: '2026-12-31T00:00:00'
+          subscriptionDueDate: '2026-12-31T00:00:00',
+          activeCall: null // NOVO ESTADO DE CHAMADA NA NUVEM
         });
       }
       setLoadingData(false);
@@ -1274,12 +1274,22 @@ export default function App() {
 
   const { 
     salonName, adminSettings, professionals, appointments, clients, products, 
-    sales, expenses, branding, premiumFeatures, subscriptionDueDate 
+    sales, expenses, branding, premiumFeatures, subscriptionDueDate, activeCall 
   } = dbState || {};
 
   const makeSetter = (key) => (val) => {
     const newVal = typeof val === 'function' ? val(dbState[key]) : val;
     updateGlobalState({ [key]: newVal });
+  };
+
+  // Função para efetuar chamada global na nuvem
+  const handleSetActiveCall = (callData) => {
+    updateGlobalState({ activeCall: callData });
+    if (callData) {
+      setTimeout(() => {
+        updateGlobalState({ activeCall: null });
+      }, 10000); // Limpa o aviso de chamada da nuvem ao fim de 10s
+    }
   };
 
   // VARIÁVEIS CSS DINÂMICAS PARA A COR DO WHITE LABEL
@@ -1329,7 +1339,7 @@ export default function App() {
 
       {view === 'landing' && <LandingPage setView={setView} salonName={salonName} branding={branding} products={products} onProductClick={(p) => { setSelectedProductForStore(p); setView('store'); }} />}
       {view === 'auth' && <AuthScreen setView={setView} professionals={professionals} setLoggedPro={setLoggedPro} adminSettings={adminSettings} setShowMasterLogin={setShowMasterLogin} />}
-      {view === 'admin' && <AdminDashboard setView={setView} salonName={salonName} setSalonName={makeSetter('salonName')} adminSettings={adminSettings} setAdminSettings={makeSetter('adminSettings')} appointments={appointments} setAppointments={makeSetter('appointments')} professionals={professionals} setProfessionals={makeSetter('professionals')} products={products} setProducts={makeSetter('products')} sales={sales} setSales={makeSetter('sales')} clients={clients} setClients={makeSetter('clients')} expenses={expenses} setExpenses={makeSetter('expenses')} tvPlaylist={dbState?.tvPlaylist || []} setTvPlaylist={makeSetter('tvPlaylist')} tvVideoFit={dbState?.tvVideoFit || 'contain'} setTvVideoFit={makeSetter('tvVideoFit')} setActiveCall={setActiveCall} premiumFeatures={premiumFeatures} />}
+      {view === 'admin' && <AdminDashboard setView={setView} salonName={salonName} setSalonName={makeSetter('salonName')} adminSettings={adminSettings} setAdminSettings={makeSetter('adminSettings')} appointments={appointments} setAppointments={makeSetter('appointments')} professionals={professionals} setProfessionals={makeSetter('professionals')} products={products} setProducts={makeSetter('products')} sales={sales} setSales={makeSetter('sales')} clients={clients} setClients={makeSetter('clients')} expenses={expenses} setExpenses={makeSetter('expenses')} tvPlaylist={dbState?.tvPlaylist || []} setTvPlaylist={makeSetter('tvPlaylist')} tvVideoFit={dbState?.tvVideoFit || 'contain'} setTvVideoFit={makeSetter('tvVideoFit')} setActiveCall={handleSetActiveCall} premiumFeatures={premiumFeatures} />}
       {view === 'booking' && <BookingFlow setView={setView} professionals={professionals} appointments={appointments} setAppointments={makeSetter('appointments')} />}
       {view === 'store' && <StoreFlow setView={setView} products={products} initialProduct={selectedProductForStore} salonName={salonName} />}
       {view === 'master' && <MasterDashboard setView={setView} subscriptionDueDate={subscriptionDueDate} setSubscriptionDueDate={makeSetter('subscriptionDueDate')} premiumFeatures={premiumFeatures} setPremiumFeatures={makeSetter('premiumFeatures')} branding={branding} setBranding={makeSetter('branding')} />}
@@ -1337,18 +1347,19 @@ export default function App() {
       {view === 'client_login' && <ClientLoginScreen setView={setView} clients={clients} setLoggedClient={setLoggedClient} />}
       {view === 'client' && <ClientDashboard setView={setView} theme={theme} setTheme={setTheme} salonName={salonName} loggedClient={loggedClient} appointments={appointments} professionals={professionals} />}
       
-      {view === 'pro_app' && <ProfessionalApp setView={setView} loggedPro={loggedPro} appointments={appointments} setAppointments={makeSetter('appointments')} professionals={professionals} products={products} setProducts={makeSetter('products')} sales={sales} setSales={makeSetter('sales')} salonName={salonName} setActiveCall={setActiveCall} />}
+      {view === 'pro_app' && <ProfessionalApp setView={setView} loggedPro={loggedPro} appointments={appointments} setAppointments={makeSetter('appointments')} professionals={professionals} products={products} setProducts={makeSetter('products')} sales={sales} setSales={makeSetter('sales')} salonName={salonName} setActiveCall={handleSetActiveCall} />}
       {view === 'tv' && <TvPanelScreen activeCall={activeCall} salonName={salonName} professionals={professionals} tvPlaylist={dbState?.tvPlaylist || []} tvVideoFit={dbState?.tvVideoFit || 'contain'} setView={setView} branding={branding} />}
       {view === 'spotify' && <SpotifyScreen setView={setView} spotifyUrl={dbState?.spotifyUrl || ''} />}
       {view === 'iptv' && <IptvScreen setView={setView} iptvUrl={dbState?.iptvUrl || ''} />}
 
-      {activeCall && view !== 'tv' && (
+      {/* Alerta Chamada TV para o Administrador ou Profissional */}
+      {activeCall && (view === 'admin' || view === 'pro_app') && (
         <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center animate-fade-in p-6">
           <div className="text-center max-w-2xl">
-            <h2 className="text-2xl text-theme mb-4 font-light tracking-[0.3em]">PRÓXIMA CLIENTE</h2>
+            <h2 className="text-2xl text-theme mb-4 font-light tracking-[0.3em]">CHAMADA ENVIADA À TV</h2>
             <h1 className="text-6xl md:text-9xl font-bold text-green-400 mb-8 animate-pulse">{activeCall.client.split(' ')[0]}</h1>
             <p className="text-xl text-neutral-400 font-light">Dirija-se ao profissional <span className="text-white font-medium">{professionals.find(p => p.id === activeCall.proId)?.name}</span></p>
-            <Button onClick={() => setActiveCall(null)} variant="outline" className="mt-12 px-12">Fechar Alerta</Button>
+            <Button onClick={() => handleSetActiveCall(null)} variant="outline" className="mt-12 px-12">Fechar Alerta</Button>
           </div>
         </div>
       )}
