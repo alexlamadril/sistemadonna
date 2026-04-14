@@ -676,9 +676,9 @@ const ProfessionalApp = ({ setView, loggedPro, appointments, setAppointments, pr
 const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], tvVideoFit = 'contain', setView, branding }) => {
   const shortName = (salonName || "DONNA").split(' ')[0].toUpperCase();
   const [currentVidIndex, setCurrentVidIndex] = useState(0);
-  const [audioEnabled, setAudioEnabled] = useState(false); // NOVO: Estado do botão de Áudio
+  const [audioEnabled, setAudioEnabled] = useState(false);
 
-  // EFEITO SONORO SINTETIZADO (100% FIÁVEL - SEM LINKS EXTERNOS)
+  // EFEITO SONORO SINTETIZADO COM VOZ TTS (100% FIÁVEL)
   useEffect(() => {
     if (activeCall && audioEnabled) {
       try {
@@ -690,10 +690,9 @@ const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], 
               const osc = ctx.createOscillator();
               const gainNode = ctx.createGain();
               
-              osc.type = 'triangle'; // Um som mais suave e elegante
+              osc.type = 'triangle';
               osc.frequency.value = freq;
               
-              // Fade in suave e fade out para criar um "ding" natural
               gainNode.gain.setValueAtTime(0, ctx.currentTime + delay);
               gainNode.gain.linearRampToValueAtTime(0.4, ctx.currentTime + delay + 0.05);
               gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 2.0);
@@ -705,16 +704,38 @@ const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], 
               osc.stop(ctx.currentTime + delay + 2.1);
             };
 
-            // Som clássico de Aeroporto / Loja de Luxo (Ding - Dong)
-            playNote(783.99, 0);    // Nota Sol (G5)
-            playNote(659.25, 0.6);  // Nota Mi (E5) ligeiramente atrasada
+            // Toca o Ding-Dong
+            playNote(783.99, 0);    // Sol
+            playNote(659.25, 0.6);  // Mi
+            
+            // Espera o Ding-Dong terminar para falar (Aprox 2 segundos)
+            setTimeout(() => {
+              if ('speechSynthesis' in window) {
+                const clientFirstName = activeCall.client.split(' ')[0];
+                const professionalName = professionals.find(p => p.id === activeCall.proId)?.name || 'Nossa Equipe';
+                
+                const message = `${clientFirstName}, a profissional ${professionalName} lhe aguarda!`;
+                const utterance = new SpeechSynthesisUtterance(message);
+                
+                utterance.lang = 'pt-BR'; // Português do Brasil
+                utterance.rate = 0.85;    // Velocidade mais suave e pausada
+                utterance.pitch = 1;      // Tom padrão
+                
+                // Tenta procurar a voz do Google Brasil se existir no dispositivo, senão usa a padrão
+                const voices = window.speechSynthesis.getVoices();
+                const ptVoice = voices.find(v => v.lang === 'pt-BR' && v.name.includes('Google'));
+                if(ptVoice) utterance.voice = ptVoice;
+                
+                window.speechSynthesis.speak(utterance);
+              }
+            }, 2000);
           });
         }
       } catch(e) {
         console.log("O navegador bloqueou o áudio.", e);
       }
     }
-  }, [activeCall, audioEnabled]);
+  }, [activeCall, audioEnabled, professionals]);
 
   const handleMediaEnd = () => {
     if (tvPlaylist.length > 0) setCurrentVidIndex((prev) => (prev + 1) % tvPlaylist.length);
@@ -744,11 +765,9 @@ const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], 
         <ChevronLeft size={16} /> <span className="text-xs md:text-sm font-medium">Voltar ao Admin</span>
       </button>
 
-      {/* NOVO: BOTÃO DE ATIVAR ÁUDIO */}
       <button 
         onClick={() => {
           setAudioEnabled(!audioEnabled);
-          // Pequeno truque para desbloquear o motor de áudio imediatamente no momento do clique
           try { const AudioContext = window.AudioContext || window.webkitAudioContext; if(AudioContext) new AudioContext().resume(); } catch(e){}
         }} 
         className={`absolute top-4 right-4 md:top-6 md:right-6 z-50 p-2.5 md:p-3 rounded-full border transition-all flex items-center gap-1.5 md:gap-2 ${
@@ -1401,6 +1420,18 @@ export default function App() {
       {view === 'tv' && <TvPanelScreen activeCall={activeCall} salonName={salonName} professionals={professionals} tvPlaylist={dbState?.tvPlaylist || []} tvVideoFit={dbState?.tvVideoFit || 'contain'} setView={setView} branding={branding} />}
       {view === 'spotify' && <SpotifyScreen setView={setView} spotifyUrl={dbState?.spotifyUrl || ''} />}
       {view === 'iptv' && <IptvScreen setView={setView} iptvUrl={dbState?.iptvUrl || ''} />}
+
+      {/* Alerta Chamada TV para o Administrador ou Profissional */}
+      {activeCall && (view === 'admin' || view === 'pro_app') && (
+        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center animate-fade-in p-6">
+          <div className="text-center max-w-2xl">
+            <h2 className="text-2xl text-theme mb-4 font-light tracking-[0.3em]">CHAMADA ENVIADA À TV</h2>
+            <h1 className="text-6xl md:text-9xl font-bold text-green-400 mb-8 animate-pulse">{activeCall.client.split(' ')[0]}</h1>
+            <p className="text-xl text-neutral-400 font-light">Dirija-se ao profissional <span className="text-white font-medium">{professionals.find(p => p.id === activeCall.proId)?.name}</span></p>
+            <Button onClick={() => handleSetActiveCall(null)} variant="outline" className="mt-12 px-12">Fechar Alerta</Button>
+          </div>
+        </div>
+      )}
 
       {showMasterLogin && (
         <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-fade-in p-4" onClick={(e) => e.stopPropagation()}>
