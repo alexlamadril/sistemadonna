@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
@@ -659,7 +659,7 @@ const ProfessionalApp = ({ setView, loggedPro, setLoggedPro, appointments, setAp
   const [activeTab, setActiveTab] = useState('agenda');
   const [showClientModal, setShowClientModal] = useState(false);
   const [clientData, setClientData] = useState({ id: '', name: '', phone: '', lastServiceId: 1, lastVisit: '' });
-  const [cart, setCart] = useState([]); // NOVO: Estado do Carrinho do PDV do Profissional
+  const [cart, setCart] = useState([]); 
 
   const confirmAppointmentPro = (id) => {
     setAppointments(appointments.map(app => app.id === id ? { ...app, status: 'Confirmado' } : app));
@@ -957,6 +957,12 @@ const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], 
   const [audioEnabled, setAudioEnabled] = useState(isTvStandalone || false); 
   const [showCallDisplay, setShowCallDisplay] = useState(false);
 
+  const activePlaylist = useMemo(() => {
+    return tvPlaylist && tvPlaylist.length > 0 ? tvPlaylist : [
+      { id: 'default', name: 'Bem-vindo(a)', url: branding?.tvBg || branding?.landingBg || 'https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=1920&q=80', type: 'image', duration: 20000 }
+    ];
+  }, [tvPlaylist, branding]);
+
   useEffect(() => {
     if (activeCall) {
       setShowCallDisplay(true); 
@@ -989,24 +995,29 @@ const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], 
               playNote(659.25, 0.6);
               
               setTimeout(() => {
-                if ('speechSynthesis' in window) {
-                  const clientFirstName = activeCall.client.split(' ')[0];
-                  const professionalName = professionals.find(p => p.id === activeCall.proId)?.name || 'Nossa Equipe';
+                if ('speechSynthesis' in window && activeCall) {
+                  window.speechSynthesis.cancel(); 
+
+                  const clientFirstName = activeCall?.client?.split(' ')[0] || '';
+                  const professionalName = professionals.find(p => p.id === activeCall?.proId)?.name || 'Nossa Equipe';
                   
-                  const message = `${clientFirstName}, a profissional ${professionalName} lhe aguarda!`;
-                  const utterance = new SpeechSynthesisUtterance(message);
-                  
-                  utterance.lang = 'pt-BR';
-                  utterance.rate = 0.85;
-                  utterance.pitch = 1;
-                  
-                  const voices = window.speechSynthesis.getVoices();
-                  const ptVoice = voices.find(v => v.lang === 'pt-BR' && v.name.includes('Google'));
-                  if(ptVoice) utterance.voice = ptVoice;
-                  
-                  window.speechSynthesis.speak(utterance);
+                  if (clientFirstName) {
+                    const message = `${clientFirstName}, a profissional ${professionalName} lhe aguarda!`;
+                    const utterance = new SpeechSynthesisUtterance(message);
+                    
+                    utterance.lang = 'pt-BR';
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1;
+                    utterance.volume = 1;
+                    
+                    const voices = window.speechSynthesis.getVoices();
+                    const ptVoice = voices.find(v => v.lang === 'pt-BR' && v.name.includes('Google'));
+                    if(ptVoice) utterance.voice = ptVoice;
+                    
+                    window.speechSynthesis.speak(utterance);
+                  }
                 }
-              }, 2000);
+              }, 2200); 
             });
           }
         } catch(e) {
@@ -1022,16 +1033,16 @@ const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], 
   }, [activeCall, audioEnabled, professionals]);
 
   const handleMediaEnd = () => {
-    if (tvPlaylist.length > 0) setCurrentVidIndex((prev) => (prev + 1) % tvPlaylist.length);
+    setCurrentVidIndex((prev) => (prev + 1) % activePlaylist.length);
   };
 
   useEffect(() => {
-    if (currentVidIndex >= tvPlaylist.length) setCurrentVidIndex(0);
-  }, [tvPlaylist.length, currentVidIndex]);
+    if (currentVidIndex >= activePlaylist.length) setCurrentVidIndex(0);
+  }, [activePlaylist.length, currentVidIndex]);
 
   useEffect(() => {
-    if (!showCallDisplay && tvPlaylist.length > 0) {
-      const currentMedia = tvPlaylist[currentVidIndex];
+    if (!showCallDisplay && activePlaylist.length > 0) {
+      const currentMedia = activePlaylist[currentVidIndex];
       if (currentMedia && currentMedia.type === 'image') {
         const timer = setTimeout(() => {
           handleMediaEnd();
@@ -1039,9 +1050,9 @@ const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], 
         return () => clearTimeout(timer);
       }
     }
-  }, [showCallDisplay, currentVidIndex, tvPlaylist]);
+  }, [showCallDisplay, currentVidIndex, activePlaylist]);
 
-  const currentMedia = tvPlaylist[currentVidIndex];
+  const currentMedia = activePlaylist[currentVidIndex];
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center overflow-hidden relative">
@@ -1060,6 +1071,12 @@ const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], 
         onClick={() => {
           setAudioEnabled(!audioEnabled);
           try { const AudioContext = window.AudioContext || window.webkitAudioContext; if(AudioContext) new AudioContext().resume(); } catch(e){}
+          
+          if (!audioEnabled && 'speechSynthesis' in window) {
+             const unlockUtterance = new SpeechSynthesisUtterance('');
+             unlockUtterance.volume = 0;
+             window.speechSynthesis.speak(unlockUtterance);
+          }
         }} 
         className={`absolute top-4 right-4 md:top-6 md:right-6 z-50 p-2 sm:p-3 rounded-full border transition-all flex items-center gap-1 sm:gap-2 ${
           audioEnabled 
@@ -1071,18 +1088,23 @@ const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], 
         <span className="text-[10px] sm:text-xs md:text-sm font-medium hidden sm:inline">{audioEnabled ? 'Áudio Ligado' : 'Ativar Áudio'}</span>
       </button>
 
-      <div className="absolute inset-0 z-0 opacity-20">
-        <img src={branding?.tvBg || ''} className="w-full h-full object-cover object-center scale-105" alt="" />
+      <div className="absolute inset-0 z-0 opacity-40">
+        <img src={branding?.tvBg || 'https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=1920&q=80'} className="w-full h-full object-cover object-center scale-105" alt="" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black z-10" />
       </div>
 
-      {!showCallDisplay && tvPlaylist.length > 0 && currentMedia && (
+      {!showCallDisplay && activePlaylist.length > 0 && currentMedia && (
         <div className="absolute inset-0 z-10 animate-fade-in transition-all bg-black flex items-center justify-center">
           <div className="w-full h-full max-h-screen">
             {currentMedia.type === 'video' ? (
                <video src={currentMedia.url} autoPlay muted playsInline onEnded={handleMediaEnd} className={`w-full h-full bg-black ${tvVideoFit === 'cover' ? 'object-cover opacity-90' : 'object-contain opacity-100'}`} />
             ) : (
-               <img src={currentMedia.url} className={`w-full h-full bg-black ${tvVideoFit === 'cover' ? 'object-cover opacity-90' : 'object-contain opacity-100'}`} alt="Propaganda" />
+               <img 
+                 src={currentMedia.url} 
+                 onError={(e) => {e.target.src = 'https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=1920&q=80'}}
+                 className={`w-full h-full bg-black ${tvVideoFit === 'cover' ? 'object-cover opacity-90' : 'object-contain opacity-100'}`} 
+                 alt="Propaganda" 
+               />
             )}
           </div>
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent p-4 md:p-6 pt-16 md:pt-24 z-20">
@@ -1095,15 +1117,15 @@ const TvPanelScreen = ({ activeCall, salonName, professionals, tvPlaylist = [], 
         {showCallDisplay ? (
           <div className="animate-fade-in-up">
             <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl text-theme font-light mb-3 sm:mb-6 md:mb-8 uppercase tracking-widest drop-shadow-md">Chegou a sua vez</h2>
-            <h1 className="text-4xl sm:text-6xl md:text-[100px] lg:text-[120px] font-bold text-green-400 animate-pulse mb-4 sm:mb-8 tracking-tight leading-none drop-shadow-[0_0_30px_rgba(74,222,128,0.5)]">{activeCall.client.split(' ')[0]}</h1>
+            <h1 className="text-4xl sm:text-6xl md:text-[100px] lg:text-[120px] font-bold text-green-400 animate-pulse mb-4 sm:mb-8 tracking-tight leading-none drop-shadow-[0_0_30px_rgba(74,222,128,0.5)]">{activeCall?.client?.split(' ')[0] || ''}</h1>
             <div className="mt-6 sm:mt-10 md:mt-12 bg-neutral-900/90 backdrop-blur-xl border border-neutral-800 rounded-2xl md:rounded-3xl p-5 sm:p-6 md:p-8 inline-block shadow-2xl">
               <p className="text-sm sm:text-xl md:text-2xl text-neutral-400 mb-1 md:mb-2">Por favor, dirija-se ao profissional</p>
-              <p className="text-lg sm:text-3xl md:text-4xl text-white font-medium">{professionals.find(p => p.id === activeCall.proId)?.name || 'Nossa Equipe'}</p>
-              <p className="text-sm sm:text-lg md:text-xl text-theme mt-1.5 sm:mt-3 md:mt-4">{activeCall.service}</p>
+              <p className="text-lg sm:text-3xl md:text-4xl text-white font-medium">{professionals.find(p => p.id === activeCall?.proId)?.name || 'Nossa Equipe'}</p>
+              <p className="text-sm sm:text-lg md:text-xl text-theme mt-1.5 sm:mt-3 md:mt-4">{activeCall?.service || ''}</p>
             </div>
           </div>
         ) : (
-          tvPlaylist.length === 0 && (
+          activePlaylist.length === 0 && (
             <div className="animate-fade-in opacity-40 transition-opacity duration-1000">
               <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-9xl font-serif text-theme tracking-[0.2em] drop-shadow-lg">{shortName}</h1>
               <p className="text-xs sm:text-base md:text-xl lg:text-2xl text-neutral-500 mt-3 sm:mt-6 md:mt-8 tracking-widest uppercase font-light">Aguarde ser chamado(a)</p>
